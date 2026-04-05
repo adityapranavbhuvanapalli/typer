@@ -51,7 +51,7 @@ export default async function ProblemsPage(props: { searchParams: Promise<{ page
     <div className="max-w-6xl mx-auto px-6 py-12">
       <div className="flex justify-between items-end mb-8">
         <div>
-          <h1 className="text-4xl font-black text-[var(--text-strong)] mb-2">Challenges List</h1>
+          <h1 className="text-4xl font-black text-[var(--text-strong)] mb-2">Challenges</h1>
           <p className="text-[var(--text-muted)]">Pick a challenge and test your speed.</p>
         </div>
         <div className="text-sm font-semibold text-[var(--text-muted)] bg-[var(--panel-bg)] px-4 py-2 rounded-full border border-[var(--panel-border)]">
