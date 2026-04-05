@@ -37,19 +37,6 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
       if (e.key === 'Backspace') {
         if (currentTypedWord.length > 0) {
           setCurrentTypedWord(prev => prev.slice(0, -1))
-        } else if (activeWordIndex > 0) {
-          // Allowed to jump back to previous word ONLY if it was typed incorrectly
-          const prevWordIndex = activeWordIndex - 1
-          const prevWordTyped = typedWords[prevWordIndex]
-          const prevWordTarget = targetWords[prevWordIndex]
-          
-          if (prevWordTyped !== prevWordTarget) {
-            const newTypedWords = [...typedWords]
-            newTypedWords.pop() // remove it from locked array
-            setTypedWords(newTypedWords)
-            setActiveWordIndex(prevWordIndex)
-            setCurrentTypedWord(prevWordTyped)
-          }
         }
         return
       }
