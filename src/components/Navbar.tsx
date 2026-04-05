@@ -1,0 +1,71 @@
+import Link from 'next/link'
+import { auth, signIn, signOut } from '@/auth'
+import { ThemeToggle } from './ThemeToggle'
+import { NavLinks } from './NavLinks'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
+
+export async function Navbar() {
+  const session = await auth()
+  
+  let currentStreak = 0
+  if (session?.user?.id) {
+    const userDb = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { currentStreak: true }
+    })
+    currentStreak = userDb?.currentStreak || 0
+  }
+  
+  const dailyChallenge = await prisma.challenge.findFirst({
+    where: { isDaily: true },
+    select: { id: true }
+  })
+  const dailyUrl = dailyChallenge ? `/challenge/${dailyChallenge.id}` : "/challenges"
+  
+  return (
+    <nav className="flex justify-between items-center px-8 py-4 border-b border-[var(--panel-border)] shadow-md bg-[var(--panel-bg)]/80 backdrop-blur-md sticky top-0 z-50 transition-all">
+      <Link href="/" className="text-3xl font-black tracking-tighter text-[var(--primary)] hover:text-[var(--text-strong)] transition-colors duration-200">
+        typer
+        <span className="text-[var(--text-strong)] text-3xl">.com</span>
+      </Link>
+      
+      <div className="flex space-x-8 items-center text-sm tracking-wide">
+        <NavLinks />
+        
+        {session?.user ? (
+          <div className="flex items-center space-x-4 pl-4 border-l border-[var(--panel-border)]">
+            <Link 
+              href={dailyUrl}
+              className="flex items-center justify-center gap-1.5 px-3 py-1 bg-orange-500/10 hover:bg-orange-500/20 shadow-inner border border-orange-500/30 rounded-full text-orange-500 font-bold transition-colors cursor-pointer" 
+              title="Play Daily Challenge"
+            >
+              <span>🔥</span>
+              <span>{currentStreak}</span>
+            </Link>
+            <Link 
+              href={`/profile/${session.user.id}`} 
+              className="flex items-center space-x-2 hover:bg-[var(--panel-bg)] px-3 py-1.5 rounded-full transition-all"
+            >
+              <img src={session.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.name}`} alt="avatar" className="w-8 h-8 rounded-full border border-blue-500" />
+              <span className="text-[var(--text-muted)]">{session.user.name}</span>
+            </Link>
+            <form action={async () => { "use server"; await signOut() }}>
+               <button className="px-5 py-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-500 hover:text-red-400 font-bold border border-red-900/50 transition-all shadow-[0_0_15px_rgba(239,68,68,0.1)]">Sign Out</button>
+            </form>
+          </div>
+        ) : (
+          <Link href="/login" className="px-6 py-2 rounded-lg bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)] font-bold transition-all transform hover:-translate-y-0.5 active:translate-y-0 inline-block text-center cursor-pointer">
+            Sign In
+          </Link>
+        )}
+
+        {/* Theme Toggle placed explicitly next to sign in block */}
+        <div className="pl-4 border-l border-[var(--panel-border)]/50">
+          <ThemeToggle />
+        </div>
+      </div>
+    </nav>
+  )
+}
