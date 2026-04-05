@@ -27,7 +27,7 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
       <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12">
         <img 
           src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
-          className="w-32 h-32 rounded-full border-4 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.3)]" 
+          className="w-32 h-32 rounded-full border-4 border-[var(--metric-speed)] shadow-lg" 
           alt="Avatar" 
         />
         <div className="flex-1 text-center md:text-left">
@@ -37,12 +37,12 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
         
         {/* Highlight Stats */}
         <div className="flex gap-4">
-          <div className="bg-[var(--panel-bg)] border border-blue-500/30 p-4 rounded-xl text-center">
-            <p className="text-sm text-blue-300 font-bold mb-1">Top Speed</p>
+          <div className="bg-[var(--panel-bg)] border border-[var(--metric-speed)]/30 p-4 rounded-xl text-center">
+            <p className="text-sm text-[var(--metric-speed)] font-bold mb-1">Top Speed</p>
             <p className="text-3xl font-mono font-black text-[var(--text-strong)]">{Math.round(user.topWpm)}</p>
           </div>
-          <div className="bg-orange-900/20 border border-orange-500/30 p-4 rounded-xl text-center">
-            <p className="text-sm text-orange-300 font-bold mb-1">Max Streak</p>
+          <div className="bg-[var(--panel-bg)] border border-[var(--metric-streak)]/30 p-4 rounded-xl text-center">
+            <p className="text-sm text-[var(--metric-streak)] font-bold mb-1">Max Streak</p>
             <p className="text-3xl font-mono font-black text-[var(--text-strong)]">{user.longestStreak}</p>
           </div>
         </div>
@@ -50,17 +50,17 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
 
       {/* Percentile Banner */}
       {user.totalCompleted > 0 && (
-        <div className="w-full bg-gradient-to-r from-blue-900 to-black p-1 rounded-xl mb-12 shadow-xl border border-blue-800">
+        <div className="w-full bg-gradient-to-r from-[var(--hero-from)] to-[var(--hero-to)] p-[1px] rounded-xl mb-12 shadow-xl border border-[var(--panel-border)]">
           <div className="bg-[var(--panel-bg)] rounded-lg p-6 flex flex-col md:flex-row items-center justify-between">
             <div>
               <h3 className="text-2xl font-bold text-[var(--text-strong)] mb-2">Speed Percentile</h3>
-              <p className="text-[var(--text-muted)] text-sm">You type faster than <strong className="text-blue-400">{percentile.toFixed(1)}%</strong> of all users.</p>
+              <p className="text-[var(--text-muted)] text-sm">You type faster than <strong className="text-[var(--metric-speed)]">{percentile.toFixed(1)}%</strong> of all users.</p>
             </div>
             <div className="mt-4 md:mt-0 text-right">
               <p className="text-xs text-[var(--text-muted)] mb-1">Global Standing based on Top WPM</p>
-              <div className="w-64 h-3 bg-gray-800 rounded-full overflow-hidden">
+              <div className="w-64 h-3 bg-[var(--panel-border)] rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-blue-600 to-cyan-400" 
+                  className="h-full bg-gradient-to-r from-[var(--hero-from)] to-[var(--hero-to)]" 
                   style={{ width: `${percentile}%` }}
                 />
               </div>

@@ -31,11 +31,11 @@ export default function ChallengeWorkspace({ challenge, isGuest }: { challenge: 
 
   const getDifficultyColor = (diff: string) => {
     switch(diff) {
-      case 'EASY': return 'text-green-400 bg-green-500/10 border-green-500/20'
-      case 'MEDIUM': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20'
-      case 'HARD': return 'text-orange-400 bg-orange-500/10 border-orange-500/20'
-      case 'SUPER_HARD': return 'text-red-500 bg-red-500/10 border-red-500/20'
-      default: return 'text-[var(--text-muted)] bg-gray-500/10 border-gray-500/20'
+      case 'EASY': return 'text-[var(--diff-easy)] bg-[var(--diff-easy)]/10 border-[var(--diff-easy)]/20'
+      case 'MEDIUM': return 'text-[var(--diff-med)] bg-[var(--diff-med)]/10 border-[var(--diff-med)]/20'
+      case 'HARD': return 'text-[var(--diff-hard)] bg-[var(--diff-hard)]/10 border-[var(--diff-hard)]/20'
+      case 'SUPER_HARD': return 'text-[var(--diff-super)] bg-[var(--diff-super)]/10 border-[var(--diff-super)]/20'
+      default: return 'text-[var(--text-muted)] bg-[var(--panel-border)]/10 border-[var(--panel-border)]/20'
     }
   }
 
@@ -52,7 +52,7 @@ export default function ChallengeWorkspace({ challenge, isGuest }: { challenge: 
           </div>
         </div>
         {isGuest && (
-          <div className="px-3 py-1 bg-yellow-500/10 border border-yellow-500/30 text-yellow-500 rounded text-sm font-semibold">
+          <div className="px-3 py-1 bg-[var(--diff-med)]/10 border border-[var(--diff-med)]/30 text-[var(--diff-med)] rounded text-sm font-semibold">
             Playing as Guest. Progress will not be saved.
           </div>
         )}
@@ -68,32 +68,32 @@ export default function ChallengeWorkspace({ challenge, isGuest }: { challenge: 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 bg-[var(--panel-bg)] rounded-xl border border-[var(--panel-border)]">
               <p className="text-[var(--text-muted)] text-sm font-semibold mb-1">Net WPM</p>
-              <p className="text-3xl font-bold text-blue-400">{Math.round(stats!.wpm)}</p>
+              <p className="text-3xl font-bold text-[var(--metric-speed)]">{Math.round(stats!.wpm)}</p>
             </div>
             <div className="p-4 bg-[var(--panel-bg)] rounded-xl border border-[var(--panel-border)]">
               <p className="text-[var(--text-muted)] text-sm font-semibold mb-1">Accuracy</p>
-              <p className="text-3xl font-bold text-green-400">{stats!.accuracy.toFixed(1)}%</p>
+              <p className="text-3xl font-bold text-[var(--metric-solved)]">{stats!.accuracy.toFixed(1)}%</p>
             </div>
             <div className="p-4 bg-[var(--panel-bg)] rounded-xl border border-[var(--panel-border)]">
               <p className="text-[var(--text-muted)] text-sm font-semibold mb-1">Time</p>
               <p className="text-3xl font-bold text-[var(--text-strong)]">{stats!.timeSeconds.toFixed(1)}s</p>
             </div>
-            <div className="p-4 bg-[var(--panel-bg)] rounded-xl border border-red-900/30">
+            <div className="p-4 bg-[var(--panel-bg)] rounded-xl border border-[var(--diff-super)]/30">
               <p className="text-[var(--text-muted)] text-sm font-semibold mb-1">Missed Words</p>
-              <p className="text-3xl font-bold text-red-500">{stats!.errors}</p>
+              <p className="text-3xl font-bold text-[var(--diff-super)]">{stats!.errors}</p>
             </div>
           </div>
 
           <div className="pt-4 flex justify-center gap-4">
             <button 
               onClick={() => window.location.reload()}
-              className="px-6 py-3 rounded-lg bg-black hover:bg-gray-900 text-[var(--text-strong)] font-bold border border-gray-800 transition-colors"
+              className="px-6 py-3 rounded-lg bg-[var(--panel-bg)] hover:bg-[var(--panel-border)] text-[var(--text-strong)] font-bold border border-[var(--panel-border)] transition-colors"
             >
               Retry
             </button>
             <Link 
               href="/challenges"
-              className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/20 transition-all"
+              className="px-6 py-3 rounded-lg bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-[var(--text-strong)] font-bold shadow-lg transition-all"
             >
               {isSaving ? "Saving..." : "Next Problem"}
             </Link>

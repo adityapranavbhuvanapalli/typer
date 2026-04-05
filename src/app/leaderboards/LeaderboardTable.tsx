@@ -46,25 +46,25 @@ export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostComplet
       <div className="flex border-b border-[var(--panel-border)] bg-[var(--panel-bg)]/50 pt-2 px-4 gap-2 overflow-x-auto">
         <button
           onClick={() => setActiveTab('top_speed')}
-          className={`whitespace-nowrap px-6 py-3 flex items-center gap-2 font-medium text-sm transition-all border-b-2 rounded-tl-lg rounded-tr-lg ${activeTab === 'top_speed' ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-strong)] hover:bg-[var(--panel-border)]'}`}
+          className={`whitespace-nowrap px-6 py-3 flex items-center gap-2 font-medium text-sm transition-all border-b-2 rounded-tl-lg rounded-tr-lg ${activeTab === 'top_speed' ? 'border-blue-500 text-[var(--metric-speed)] bg-blue-500/10' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-strong)] hover:bg-[var(--panel-border)]'}`}
         >
           <Zap size={16} /> Top Speed
         </button>
         <button
           onClick={() => setActiveTab('avg_speed')}
-          className={`whitespace-nowrap px-6 py-3 flex items-center gap-2 font-medium text-sm transition-all border-b-2 rounded-tl-lg rounded-tr-lg ${activeTab === 'avg_speed' ? 'border-purple-500 text-purple-400 bg-purple-500/10' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-strong)] hover:bg-[var(--panel-border)]'}`}
+          className={`whitespace-nowrap px-6 py-3 flex items-center gap-2 font-medium text-sm transition-all border-b-2 rounded-tl-lg rounded-tr-lg ${activeTab === 'avg_speed' ? 'border-purple-500 text-[var(--metric-avg)] bg-purple-500/10' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-strong)] hover:bg-[var(--panel-border)]'}`}
         >
           <Activity size={16} /> Avg Speed
         </button>
         <button
           onClick={() => setActiveTab('solved')}
-          className={`whitespace-nowrap px-6 py-3 flex items-center gap-2 font-medium text-sm transition-all border-b-2 rounded-tl-lg rounded-tr-lg ${activeTab === 'solved' ? 'border-green-500 text-green-400 bg-green-500/10' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-strong)] hover:bg-[var(--panel-border)]'}`}
+          className={`whitespace-nowrap px-6 py-3 flex items-center gap-2 font-medium text-sm transition-all border-b-2 rounded-tl-lg rounded-tr-lg ${activeTab === 'solved' ? 'border-green-500 text-[var(--metric-solved)] bg-green-500/10' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-strong)] hover:bg-[var(--panel-border)]'}`}
         >
           <Flame size={16} /> Most Solved
         </button>
         <button
           onClick={() => setActiveTab('streak')}
-          className={`whitespace-nowrap px-6 py-3 flex items-center gap-2 font-medium text-sm transition-all border-b-2 rounded-tl-lg rounded-tr-lg ${activeTab === 'streak' ? 'border-orange-500 text-orange-400 bg-orange-500/10' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-strong)] hover:bg-[var(--panel-border)]'}`}
+          className={`whitespace-nowrap px-6 py-3 flex items-center gap-2 font-medium text-sm transition-all border-b-2 rounded-tl-lg rounded-tr-lg ${activeTab === 'streak' ? 'border-orange-500 text-[var(--metric-streak)] bg-orange-500/10' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-strong)] hover:bg-[var(--panel-border)]'}`}
         >
           <CalendarDays size={16} /> Longest Streaks
         </button>
@@ -113,22 +113,22 @@ export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostComplet
                   </Link>
                 </td>
                 {activeTab === 'top_speed' && (
-                  <td className="p-4 font-mono font-bold text-blue-400 text-right whitespace-nowrap">
+                  <td className="p-4 font-mono font-bold text-[var(--metric-speed)] text-right whitespace-nowrap">
                     {Math.round(user.topWpm)} WPM
                   </td>
                 )}
                 {activeTab === 'avg_speed' && (
-                  <td className="p-4 font-mono font-bold text-purple-400 text-right whitespace-nowrap">
+                  <td className="p-4 font-mono font-bold text-[var(--metric-avg)] text-right whitespace-nowrap">
                     {Math.round(user.averageWpm)} WPM
                   </td>
                 )}
                 {activeTab === 'solved' && (
-                  <td className="p-4 text-green-400 font-mono font-bold text-right whitespace-nowrap">
+                  <td className="p-4 text-[var(--metric-solved)] font-mono font-bold text-right whitespace-nowrap">
                     {user.totalCompleted} <span className="text-[var(--text-muted)] font-sans font-normal text-xs">challenges</span>
                   </td>
                 )}
                 {activeTab === 'streak' && (
-                  <td className="p-4 text-orange-400 font-mono font-bold text-right whitespace-nowrap">
+                  <td className="p-4 text-[var(--metric-streak)] font-mono font-bold text-right whitespace-nowrap">
                     {user.longestStreak} <span className="text-[var(--text-muted)] font-sans font-normal text-xs">days</span>
                   </td>
                 )}

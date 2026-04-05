@@ -34,16 +34,16 @@ export default async function ProblemsPage(props: { searchParams: Promise<{ page
       where: { userId: session.user.id },
       select: { challengeId: true }
     })
-    completedChallengeIds = new Set(attempts.map(a => a.challengeId))
+    completedChallengeIds = new Set(attempts.map((a: any) => a.challengeId))
   }
 
   const getDifficultyColor = (diff: string) => {
     switch(diff) {
-      case 'EASY': return 'text-green-400 bg-green-500/10 border-green-500/20'
-      case 'MEDIUM': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20'
-      case 'HARD': return 'text-orange-400 bg-orange-500/10 border-orange-500/20'
-      case 'SUPER_HARD': return 'text-red-500 bg-red-500/10 border-red-500/20'
-      default: return 'text-[var(--text-muted)] bg-gray-500/10 border-gray-500/20'
+      case 'EASY': return 'text-[var(--diff-easy)] bg-[var(--diff-easy)]/10 border-[var(--diff-easy)]/20'
+      case 'MEDIUM': return 'text-[var(--diff-med)] bg-[var(--diff-med)]/10 border-[var(--diff-med)]/20'
+      case 'HARD': return 'text-[var(--diff-hard)] bg-[var(--diff-hard)]/10 border-[var(--diff-hard)]/20'
+      case 'SUPER_HARD': return 'text-[var(--diff-super)] bg-[var(--diff-super)]/10 border-[var(--diff-super)]/20'
+      default: return 'text-[var(--text-muted)] bg-[var(--panel-border)]/10 border-[var(--panel-border)]/20'
     }
   }
 
@@ -90,22 +90,22 @@ export default async function ProblemsPage(props: { searchParams: Promise<{ page
               <th className="p-4 w-40">Difficulty</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-blue-900/20">
-            {challenges.map(c => {
+          <tbody className="divide-y divide-[var(--panel-border)]/30">
+            {challenges.map((c: any) => {
               const isCompleted = completedChallengeIds.has(c.id)
 
               return (
                 <tr key={c.id} className="hover:bg-[var(--panel-bg)] transition-colors group">
                   <td className="p-4 text-center">
                     {isCompleted && (
-                      <span className="text-green-500 font-bold" title="Completed">✓</span>
+                      <span className="text-[var(--success)] font-bold" title="Completed">✓</span>
                     )}
                   </td>
                   <td className="p-4 font-medium text-[var(--text-strong)] group-hover:text-[var(--primary)] transition-colors text-lg">
                     <Link href={`/challenge/${c.id}`} className="flex items-center gap-3 w-full h-full">
                       {c.title}
                       {c.isDaily && (
-                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-blue-500 text-white animate-pulse">DAILY</span>
+                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-[var(--primary)] text-[var(--text-strong)] animate-pulse">DAILY</span>
                       )}
                     </Link>
                   </td>
