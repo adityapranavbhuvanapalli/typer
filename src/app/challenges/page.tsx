@@ -51,11 +51,33 @@ export default async function ProblemsPage(props: { searchParams: Promise<{ page
     <div className="max-w-6xl mx-auto px-6 py-12">
       <div className="flex justify-between items-end mb-8">
         <div>
-          <h1 className="text-4xl font-black text-[var(--text-strong)] mb-2">Challenges List</h1>
+          <h1 className="text-4xl font-black text-[var(--text-strong)] mb-2">Challenges</h1>
           <p className="text-[var(--text-muted)]">Pick a challenge and test your speed.</p>
         </div>
-        <div className="text-sm font-semibold text-[var(--text-muted)] bg-[var(--panel-bg)] px-4 py-2 rounded-full border border-[var(--panel-border)]">
-          Showing {skip + 1} - {Math.min(skip + pageSize, totalCount)} of {totalCount} problems
+        <div className="flex items-center gap-3">
+          <div className="text-sm font-semibold text-[var(--text-muted)] bg-[var(--panel-bg)] px-4 py-2 rounded-full border border-[var(--panel-border)]">
+            Showing {skip + 1} - {Math.min(skip + pageSize, totalCount)} of {totalCount} problems
+          </div>
+          
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1 bg-[var(--panel-bg)] p-1 rounded-full border border-[var(--panel-border)] shadow-sm">
+              {page > 1 ? (
+                <Link href={`/challenges?page=${page - 1}`} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--panel-border)] text-[var(--text-strong)] font-bold transition-colors">&lt;</Link>
+              ) : (
+                <button disabled className="w-8 h-8 flex items-center justify-center rounded-full text-[var(--text-muted)] opacity-50 cursor-not-allowed font-bold">&lt;</button>
+              )}
+              
+              <span className="px-2 text-xs font-bold text-[var(--text-muted)]">
+                {page} / {totalPages}
+              </span>
+
+              {page < totalPages ? (
+                <Link href={`/challenges?page=${page + 1}`} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--panel-border)] text-[var(--text-strong)] font-bold transition-colors">&gt;</Link>
+              ) : (
+                <button disabled className="w-8 h-8 flex items-center justify-center rounded-full text-[var(--text-muted)] opacity-50 cursor-not-allowed font-bold">&gt;</button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

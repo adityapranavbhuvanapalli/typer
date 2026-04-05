@@ -38,22 +38,33 @@ export async function Navbar() {
           <div className="flex items-center space-x-4 pl-4 border-l border-[var(--panel-border)]">
             <Link 
               href={dailyUrl}
-              className="flex items-center justify-center gap-1.5 px-3 py-1 bg-orange-500/10 hover:bg-orange-500/20 shadow-inner border border-orange-500/30 rounded-full text-orange-500 font-bold transition-colors cursor-pointer" 
+              className={`flex items-center justify-center gap-1.5 px-3 py-1 shadow-inner border rounded-full font-bold transition-colors cursor-pointer ${
+                currentStreak > 0 
+                  ? 'bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/30 text-orange-500' 
+                  : 'bg-[var(--panel-border)]/30 hover:bg-[var(--panel-border)] border-[var(--panel-border)] text-[var(--text-muted)]'
+              }`}
               title="Play Daily Challenge"
             >
-              <span>🔥</span>
+              <span className={currentStreak === 0 ? 'opacity-30 grayscale' : ''}>🔥</span>
               <span>{currentStreak}</span>
             </Link>
-            <Link 
-              href={`/profile/${session.user.id}`} 
-              className="flex items-center space-x-2 hover:bg-[var(--panel-bg)] px-3 py-1.5 rounded-full transition-all"
-            >
-              <img src={session.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.name}`} alt="avatar" className="w-8 h-8 rounded-full border border-blue-500" />
-              <span className="text-[var(--text-muted)]">{session.user.name}</span>
-            </Link>
-            <form action={async () => { "use server"; await signOut() }}>
-               <button className="px-5 py-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-500 hover:text-red-400 font-bold border border-red-900/50 transition-all shadow-[0_0_15px_rgba(239,68,68,0.1)]">Sign Out</button>
-            </form>
+            <div className="relative group pb-2 -mb-2">
+              <div className="flex items-center space-x-2 hover:bg-[var(--panel-bg)] px-3 py-1.5 rounded-full transition-all cursor-pointer">
+                <img src={session.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.name}`} alt="avatar" className="w-8 h-8 rounded-full border border-blue-500" />
+                <span className="text-[var(--text-muted)] font-bold">{session.user.name} ▾</span>
+              </div>
+              
+              <div className="absolute right-0 top-full w-48 bg-[var(--panel-bg)] border border-[var(--panel-border)] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden translate-y-2 group-hover:translate-y-0">
+                <Link href={`/profile/${session.user.id}`} className="block px-4 py-3 text-[var(--text-strong)] hover:bg-[var(--panel-border)]/50 border-b border-[var(--panel-border)] font-medium">
+                  My Profile
+                </Link>
+                <form action={async () => { "use server"; await signOut() }}>
+                  <button className="w-full text-left px-4 py-3 text-red-500 hover:bg-red-500/10 font-bold transition-colors">
+                    Sign Out
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
         ) : (
           <Link href="/login" className="px-6 py-2 rounded-lg bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)] font-bold transition-all transform hover:-translate-y-0.5 active:translate-y-0 inline-block text-center cursor-pointer">

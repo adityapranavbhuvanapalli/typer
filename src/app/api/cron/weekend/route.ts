@@ -63,11 +63,21 @@ export async function GET(request: Request) {
   }
 
   try {
+    const totalCount = await prisma.challenge.count()
+    
+    let baseSlNo = totalCount + 1
+    
+    // Generate contents explicitly so we can safely extract titles out of them
+    const eaContent = generateEasy()
+    const mdContent = generateMedium()
+    const hdContent = generateHard()
+    const shContent = generateSuperHard()
+
     const newChallenges = [
-      { title: `Weekend Easy #${Math.floor(Math.random()*1000)}`, difficulty: 'EASY', content: generateEasy() },
-      { title: `Weekend Medium #${Math.floor(Math.random()*1000)}`, difficulty: 'MEDIUM', content: generateMedium() },
-      { title: `Weekend Hard #${Math.floor(Math.random()*1000)}`, difficulty: 'HARD', content: generateHard() },
-      { title: `Weekend Super Hard #${Math.floor(Math.random()*1000)}`, difficulty: 'SUPER_HARD', content: generateSuperHard() }
+      { serialNo: baseSlNo, title: `Sl.No: ${baseSlNo} - ${eaContent.split(/\\s+/).slice(0, 4).join(' ')}...`, difficulty: 'EASY', content: eaContent },
+      { serialNo: baseSlNo + 1, title: `Sl.No: ${baseSlNo + 1} - ${mdContent.split(/\\s+/).slice(0, 4).join(' ')}...`, difficulty: 'MEDIUM', content: mdContent },
+      { serialNo: baseSlNo + 2, title: `Sl.No: ${baseSlNo + 2} - ${hdContent.split(/\\s+/).slice(0, 4).join(' ')}...`, difficulty: 'HARD', content: hdContent },
+      { serialNo: baseSlNo + 3, title: `Sl.No: ${baseSlNo + 3} - ${shContent.split(/\\s+/).slice(0, 4).join(' ')}...`, difficulty: 'SUPER_HARD', content: shContent }
     ]
 
     await prisma.challenge.createMany({
