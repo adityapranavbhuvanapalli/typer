@@ -1,28 +1,28 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { Navbar } from "@/components/Navbar";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import type { Metadata } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
+import './globals.css'
+import { Navbar } from '@/components/Navbar'
+import { ThemeProvider } from '@/components/ThemeProvider'
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+  variable: '--font-geist-sans',
+  subsets: ['latin']
+})
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+  variable: '--font-geist-mono',
+  subsets: ['latin']
+})
 
 export const metadata: Metadata = {
-  title: "typer.com",
-  description: "The ultimate platform for speed typing.",
-};
+  title: 'typer.com',
+  description: 'The ultimate platform for speed typing.'
+}
 
 export default function RootLayout({
-  children,
+  children
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html
@@ -30,14 +30,12 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col selection:bg-blue-500/30">
+      <body className="flex min-h-full flex-col selection:bg-blue-500/30">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <Navbar />
-          <main className="flex-1">
-            {children}
-          </main>
+          <main className="flex-1">{children}</main>
         </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }

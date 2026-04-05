@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
-import { 
-  generateEasy, 
-  generateMedium, 
-  generateHard, 
-  generateSuperHard 
+import {
+  generateEasy,
+  generateMedium,
+  generateHard,
+  generateSuperHard
 } from '@/lib/challenge-generator'
 
 const prisma = new PrismaClient()
@@ -17,9 +17,9 @@ export async function GET(request: Request) {
 
   try {
     const totalCount = await prisma.challenge.count()
-    
-    let baseSlNo = totalCount + 1
-    
+
+    const baseSlNo = totalCount + 1
+
     // Generate contents explicitly so we can safely extract titles out of them
     const eaContent = generateEasy()
     const mdContent = generateMedium()
@@ -27,16 +27,36 @@ export async function GET(request: Request) {
     const shContent = generateSuperHard()
 
     const newChallenges = [
-      { serialNo: baseSlNo, title: `Sl.No: ${baseSlNo} - ${eaContent.split(/\\s+/).slice(0, 4).join(' ')}...`, difficulty: 'EASY', content: eaContent },
-      { serialNo: baseSlNo + 1, title: `Sl.No: ${baseSlNo + 1} - ${mdContent.split(/\\s+/).slice(0, 4).join(' ')}...`, difficulty: 'MEDIUM', content: mdContent },
-      { serialNo: baseSlNo + 2, title: `Sl.No: ${baseSlNo + 2} - ${hdContent.split(/\\s+/).slice(0, 4).join(' ')}...`, difficulty: 'HARD', content: hdContent },
-      { serialNo: baseSlNo + 3, title: `Sl.No: ${baseSlNo + 3} - ${shContent.split(/\\s+/).slice(0, 4).join(' ')}...`, difficulty: 'SUPER_HARD', content: shContent }
+      {
+        serialNo: baseSlNo,
+        title: `Sl.No: ${baseSlNo} - ${eaContent.split(/\\s+/).slice(0, 4).join(' ')}...`,
+        difficulty: 'EASY',
+        content: eaContent
+      },
+      {
+        serialNo: baseSlNo + 1,
+        title: `Sl.No: ${baseSlNo + 1} - ${mdContent.split(/\\s+/).slice(0, 4).join(' ')}...`,
+        difficulty: 'MEDIUM',
+        content: mdContent
+      },
+      {
+        serialNo: baseSlNo + 2,
+        title: `Sl.No: ${baseSlNo + 2} - ${hdContent.split(/\\s+/).slice(0, 4).join(' ')}...`,
+        difficulty: 'HARD',
+        content: hdContent
+      },
+      {
+        serialNo: baseSlNo + 3,
+        title: `Sl.No: ${baseSlNo + 3} - ${shContent.split(/\\s+/).slice(0, 4).join(' ')}...`,
+        difficulty: 'SUPER_HARD',
+        content: shContent
+      }
     ]
 
     await prisma.challenge.createMany({
       data: newChallenges
     })
-    
+
     return NextResponse.json({ success: true, message: 'Weekend challenges generated' })
   } catch (err) {
     console.error(err)

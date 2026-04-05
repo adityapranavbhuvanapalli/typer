@@ -9,7 +9,7 @@ import {
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log("Seeding database...")
+  console.log('Seeding database...')
 
   // Safely wipe attempts to bypass foreign-key constraints before deleting challenges
   await prisma.attempt.deleteMany()
@@ -19,7 +19,7 @@ async function main() {
 
   for (let globalIndex = 1; globalIndex <= 100; globalIndex++) {
     let diff = difficulties[Math.floor(Math.random() * difficulties.length)]
-    let content = ""
+    let content = ''
 
     // Force 'EASY' for the first 5 challenges
     if (globalIndex <= 5) {
@@ -39,7 +39,7 @@ async function main() {
         serialNo: globalIndex,
         title: `${globalIndex}. ${titleSnippet}...`,
         difficulty: diff,
-        content: content,
+        content: content
       }
     })
   }
@@ -55,7 +55,7 @@ async function main() {
     })
   }
 
-  console.log("Seeding completed: 100 Challenges Generated.")
+  console.log('Seeding completed: 100 Challenges Generated.')
 }
 
 main()

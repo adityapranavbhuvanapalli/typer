@@ -1,9 +1,14 @@
-"use client"
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+'use client'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 
 interface TypingEngineProps {
   content: string
-  onComplete: (stats: { wpm: number, accuracy: number, timeSeconds: number, errors: number }) => void
+  onComplete: (stats: {
+    wpm: number
+    accuracy: number
+    timeSeconds: number
+    errors: number
+  }) => void
 }
 
 export default function TypingEngine({ content, onComplete }: TypingEngineProps) {
@@ -17,6 +22,44 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const targetWords = useMemo(() => content.trim().split(/\s+/), [content])
+
+  const finish = useCallback(
+    (finalTypedWords: string[], finalTotalKeys: number, finalCorrectKeys: number) => {
+      const end = Date.now()
+      const timeTakenMin = (end - (startTime || end)) / 1000 / 60
+
+      // Math logic
+      // Gross WPM = (wpmTotalKeystrokes / 5) / TimeInMin
+      let wpmTotalKeystrokes = 0
+      let incorrectWordsCount = 0
+
+      targetWords.forEach((target, i) => {
+        const typed = finalTypedWords[i] || ''
+        wpmTotalKeystrokes += typed.length + 1 // +1 for space
+        if (typed !== target) {
+          incorrectWordsCount++
+        }
+      })
+
+      const timeSeconds = (end - (startTime || end)) / 1000
+      const minutes = timeTakenMin > 0 ? timeTakenMin : 1 / 60 // avoid infinity
+
+      const grossWpm = wpmTotalKeystrokes / 5 / minutes
+      // Penalize uncorrected words
+      let netWpm = grossWpm - incorrectWordsCount / minutes
+      if (netWpm < 0) netWpm = 0
+
+      const accuracy = finalTotalKeys > 0 ? (finalCorrectKeys / finalTotalKeys) * 100 : 0
+
+      onComplete({
+        wpm: netWpm,
+        accuracy: accuracy,
+        timeSeconds: timeSeconds,
+        errors: incorrectWordsCount
+      })
+    },
+    [startTime, targetWords, onComplete]
+  )
 
   // Keydown handler
   useEffect(() => {
@@ -36,7 +79,7 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
 
       if (e.key === 'Backspace') {
         if (currentTypedWord.length > 0) {
-          setCurrentTypedWord(prev => prev.slice(0, -1))
+          setCurrentTypedWord((prev) => prev.slice(0, -1))
         }
         return
       }
@@ -47,12 +90,12 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
           const isWordCorrect = currentTypedWord === targetWords[activeWordIndex]
           const newTotal = historyTotalKeystrokes + 1
           const newCorrect = historyCorrectKeystrokes + (isWordCorrect ? 1 : 0)
-          
+
           setHistoryTotalKeystrokes(newTotal)
           setHistoryCorrectKeystrokes(newCorrect)
 
           const newTypedWords = [...typedWords, currentTypedWord]
-          
+
           if (activeWordIndex + 1 === targetWords.length) {
             // Hitting space on the final word ends the test (even if mistyped)
             finish(newTypedWords, newTotal, newCorrect)
@@ -65,11 +108,14 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
         return
       }
 
-      if (e.key.length === 1) { // Printable characters
+      if (e.key.length === 1) {
+        // Printable characters
         if (!startTime) setStartTime(Date.now())
 
-        const isCharCorrect = currentTypedWord + e.key === targetWords[activeWordIndex].slice(0, currentTypedWord.length + 1)
-        
+        const isCharCorrect =
+          currentTypedWord + e.key ===
+          targetWords[activeWordIndex].slice(0, currentTypedWord.length + 1)
+
         const newTotal = historyTotalKeystrokes + 1
         const newCorrect = historyCorrectKeystrokes + (isCharCorrect ? 1 : 0)
 
@@ -80,7 +126,10 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
         setCurrentTypedWord(newWord)
 
         // Auto-complete if it's the very last word and they just typed the final correct character
-        if (activeWordIndex === targetWords.length - 1 && newWord === targetWords[activeWordIndex]) {
+        if (
+          activeWordIndex === targetWords.length - 1 &&
+          newWord === targetWords[activeWordIndex]
+        ) {
           const newTypedWords = [...typedWords, newWord]
           finish(newTypedWords, newTotal, newCorrect)
         }
@@ -89,46 +138,21 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [activeWordIndex, currentTypedWord, isFocused, startTime, targetWords, typedWords, historyTotalKeystrokes, historyCorrectKeystrokes])
-
-  const finish = (finalTypedWords: string[], finalTotalKeys: number, finalCorrectKeys: number) => {
-    const end = Date.now()
-    const timeTakenMin = (end - (startTime || end)) / 1000 / 60
-
-    // Math logic
-    // Gross WPM = (wpmTotalKeystrokes / 5) / TimeInMin
-    let wpmTotalKeystrokes = 0
-    let incorrectWordsCount = 0
-
-    targetWords.forEach((target, i) => {
-      const typed = finalTypedWords[i] || ""
-      wpmTotalKeystrokes += typed.length + 1 // +1 for space
-      if (typed !== target) {
-        incorrectWordsCount++
-      }
-    })
-
-    const timeSeconds = (end - (startTime || end)) / 1000
-    const minutes = timeTakenMin > 0 ? timeTakenMin : 1 / 60 // avoid infinity
-
-    const grossWpm = (wpmTotalKeystrokes / 5) / minutes
-    // Penalize uncorrected words
-    let netWpm = grossWpm - (incorrectWordsCount / minutes)
-    if (netWpm < 0) netWpm = 0
-
-    const accuracy = finalTotalKeys > 0 ? (finalCorrectKeys / finalTotalKeys) * 100 : 0
-
-    onComplete({
-      wpm: netWpm,
-      accuracy: accuracy,
-      timeSeconds: timeSeconds,
-      errors: incorrectWordsCount
-    })
-  }
+  }, [
+    activeWordIndex,
+    currentTypedWord,
+    isFocused,
+    startTime,
+    targetWords,
+    typedWords,
+    historyTotalKeystrokes,
+    historyCorrectKeystrokes,
+    finish
+  ])
 
   return (
     <div
-      className="relative w-full max-w-4xl p-8 outline-none cursor-text rounded-xl bg-[var(--panel-bg)] border border-[var(--panel-border)] shadow-2xl overflow-hidden"
+      className="relative w-full max-w-4xl cursor-text overflow-hidden rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] p-8 shadow-2xl outline-none"
       tabIndex={0}
       ref={containerRef}
       onFocus={() => setIsFocused(true)}
@@ -137,11 +161,15 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
     >
       {!isFocused && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--panel-bg)]/60 backdrop-blur-[2px]">
-          <p className="text-[var(--text-strong)] text-xl font-medium tracking-wide">Click or press any key to focus</p>
+          <p className="text-xl font-medium tracking-wide text-[var(--text-strong)]">
+            Click or press any key to focus
+          </p>
         </div>
       )}
 
-      <div className={`flex flex-wrap gap-x-2 gap-y-3 leading-relaxed text-2xl font-mono ${!isFocused ? 'blur-sm opacity-50' : ''}`}>
+      <div
+        className={`flex flex-wrap gap-x-2 gap-y-3 font-mono text-2xl leading-relaxed ${!isFocused ? 'opacity-50 blur-sm' : ''}`}
+      >
         {targetWords.map((word, wIdx) => {
           const isActive = wIdx === activeWordIndex
           const isPast = wIdx < activeWordIndex
@@ -159,20 +187,19 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
 
           let wordBgClass = 'px-1 -mx-1 transition-colors '
           if (isActive) {
-            wordBgClass += hasTypo ? 'bg-red-500/20 rounded' : 'bg-gray-500/20 dark:bg-white/10 rounded'
+            wordBgClass += hasTypo
+              ? 'bg-red-500/20 rounded'
+              : 'bg-gray-500/20 dark:bg-white/10 rounded'
           } else if (isPast && hasTypo) {
             wordBgClass += 'border-b-2 border-red-500'
           }
 
           return (
-            <div 
-              key={wIdx} 
-              className={`relative flex ${wordBgClass}`}
-            >
+            <div key={wIdx} className={`relative flex ${wordBgClass}`}>
               {/* Active word cursor logic */}
               {isActive && (
                 <div
-                  className="absolute left-0 bottom-0 top-0 w-0.5 bg-blue-500 animate-pulse transition-all duration-100"
+                  className="absolute top-0 bottom-0 left-0 w-0.5 animate-pulse bg-blue-500 transition-all duration-100"
                   style={{ transform: `translateX(${currentTypedWord.length * 14.5}px)` }}
                 />
               )}
@@ -180,14 +207,15 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
               {/* Characters */}
               {word.split('').map((char, cIdx) => {
                 let colorClass = 'text-[var(--text-muted)]' // untyped
-                
+
                 if (isActive || isPast) {
                   if (cIdx < typedObj.length) {
                     const typedChar = typedObj[cIdx]
-                    colorClass = typedChar === char ? 'text-[var(--text-strong)]' : 'text-red-500 font-bold'
+                    colorClass =
+                      typedChar === char ? 'text-[var(--text-strong)]' : 'text-red-500 font-bold'
                   }
                 }
-                
+
                 return (
                   <span key={cIdx} className={`${colorClass} transition-colors duration-150`}>
                     {char}
@@ -197,9 +225,7 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
 
               {/* Extra typed characters */}
               {typedObj.length > word.length && (
-                <span className="text-red-500 opacity-80">
-                  {typedObj.slice(word.length)}
-                </span>
+                <span className="text-red-500 opacity-80">{typedObj.slice(word.length)}</span>
               )}
             </div>
           )
