@@ -12,6 +12,8 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
   const [typedWords, setTypedWords] = useState<string[]>([])
   const [currentTypedWord, setCurrentTypedWord] = useState('')
   const [isFocused, setIsFocused] = useState(false)
+  const [historyTotalKeystrokes, setHistoryTotalKeystrokes] = useState(0)
+  const [historyCorrectKeystrokes, setHistoryCorrectKeystrokes] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const targetWords = useMemo(() => content.trim().split(/\s+/), [content])
@@ -55,11 +57,18 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
       if (e.key === ' ') {
         e.preventDefault()
         if (currentTypedWord.length > 0) {
+          const isWordCorrect = currentTypedWord === targetWords[activeWordIndex]
+          const newTotal = historyTotalKeystrokes + 1
+          const newCorrect = historyCorrectKeystrokes + (isWordCorrect ? 1 : 0)
+          
+          setHistoryTotalKeystrokes(newTotal)
+          setHistoryCorrectKeystrokes(newCorrect)
+
           const newTypedWords = [...typedWords, currentTypedWord]
           
           if (activeWordIndex + 1 === targetWords.length) {
             // Hitting space on the final word ends the test (even if mistyped)
-            finish(newTypedWords)
+            finish(newTypedWords, newTotal, newCorrect)
           } else {
             setTypedWords(newTypedWords)
             setActiveWordIndex(activeWordIndex + 1)
@@ -72,50 +81,55 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
       if (e.key.length === 1) { // Printable characters
         if (!startTime) setStartTime(Date.now())
 
+        const isCharCorrect = currentTypedWord + e.key === targetWords[activeWordIndex].slice(0, currentTypedWord.length + 1)
+        
+        const newTotal = historyTotalKeystrokes + 1
+        const newCorrect = historyCorrectKeystrokes + (isCharCorrect ? 1 : 0)
+
+        setHistoryTotalKeystrokes(newTotal)
+        setHistoryCorrectKeystrokes(newCorrect)
+
         const newWord = currentTypedWord + e.key
         setCurrentTypedWord(newWord)
 
         // Auto-complete if it's the very last word and they just typed the final correct character
         if (activeWordIndex === targetWords.length - 1 && newWord === targetWords[activeWordIndex]) {
           const newTypedWords = [...typedWords, newWord]
-          finish(newTypedWords)
+          finish(newTypedWords, newTotal, newCorrect)
         }
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [activeWordIndex, currentTypedWord, isFocused, startTime, targetWords, typedWords])
+  }, [activeWordIndex, currentTypedWord, isFocused, startTime, targetWords, typedWords, historyTotalKeystrokes, historyCorrectKeystrokes])
 
-  const finish = (finalTypedWords: string[]) => {
+  const finish = (finalTypedWords: string[], finalTotalKeys: number, finalCorrectKeys: number) => {
     const end = Date.now()
     const timeTakenMin = (end - (startTime || end)) / 1000 / 60
 
     // Math logic
-    // Gross WPM = (Total Keystrokes / 5) / TimeInMin
-    let totalKeystrokes = 0
+    // Gross WPM = (wpmTotalKeystrokes / 5) / TimeInMin
+    let wpmTotalKeystrokes = 0
     let incorrectWordsCount = 0
-    let correctKeystrokes = 0
 
     targetWords.forEach((target, i) => {
       const typed = finalTypedWords[i] || ""
-      totalKeystrokes += typed.length + 1 // +1 for space
+      wpmTotalKeystrokes += typed.length + 1 // +1 for space
       if (typed !== target) {
         incorrectWordsCount++
-      } else {
-        correctKeystrokes += target.length + 1
       }
     })
 
     const timeSeconds = (end - (startTime || end)) / 1000
     const minutes = timeTakenMin > 0 ? timeTakenMin : 1 / 60 // avoid infinity
 
-    const grossWpm = (totalKeystrokes / 5) / minutes
+    const grossWpm = (wpmTotalKeystrokes / 5) / minutes
     // Penalize uncorrected words
     let netWpm = grossWpm - (incorrectWordsCount / minutes)
     if (netWpm < 0) netWpm = 0
 
-    const accuracy = totalKeystrokes > 0 ? (correctKeystrokes / totalKeystrokes) * 100 : 0
+    const accuracy = finalTotalKeys > 0 ? (finalCorrectKeys / finalTotalKeys) * 100 : 0
 
     onComplete({
       wpm: netWpm,
