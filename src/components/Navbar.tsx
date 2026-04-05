@@ -38,10 +38,14 @@ export async function Navbar() {
           <div className="flex items-center space-x-4 pl-4 border-l border-[var(--panel-border)]">
             <Link 
               href={dailyUrl}
-              className="flex items-center justify-center gap-1.5 px-3 py-1 bg-orange-500/10 hover:bg-orange-500/20 shadow-inner border border-orange-500/30 rounded-full text-orange-500 font-bold transition-colors cursor-pointer" 
+              className={`flex items-center justify-center gap-1.5 px-3 py-1 shadow-inner border rounded-full font-bold transition-colors cursor-pointer ${
+                currentStreak > 0 
+                  ? 'bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/30 text-orange-500' 
+                  : 'bg-[var(--panel-border)]/30 hover:bg-[var(--panel-border)] border-[var(--panel-border)] text-[var(--text-muted)]'
+              }`}
               title="Play Daily Challenge"
             >
-              <span>🔥</span>
+              <span className={currentStreak === 0 ? 'opacity-30 grayscale' : ''}>🔥</span>
               <span>{currentStreak}</span>
             </Link>
             <div className="relative group pb-2 -mb-2">
