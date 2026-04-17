@@ -3,6 +3,7 @@ import { auth, signIn, signOut } from '@/auth'
 import { ThemeToggle } from './ThemeToggle'
 import { NavLinks } from './NavLinks'
 import { PrismaClient } from '@prisma/client'
+import { getEffectiveStreak } from '@/lib/streak'
 
 const prisma = new PrismaClient()
 
@@ -13,9 +14,15 @@ export async function Navbar() {
   if (session?.user?.id) {
     const userDb = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { currentStreak: true }
+      select: { currentStreak: true, lastDailyDate: true }
     })
-    currentStreak = userDb?.currentStreak || 0
+    
+    if (userDb) {
+      currentStreak = getEffectiveStreak({
+        currentStreak: userDb.currentStreak,
+        lastDailyDate: userDb.lastDailyDate
+      })
+    }
   }
   
   const dailyChallenge = await prisma.challenge.findFirst({
