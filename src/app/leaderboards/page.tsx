@@ -18,8 +18,8 @@ export default async function LeaderboardsPage() {
               #{i + 1}
             </span>
             <div className="flex items-center gap-3">
-              <img src={u.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`} className="w-8 h-8 rounded-full border border-blue-800" alt="" />
-              <span className="font-semibold text-[var(--text-muted)] group-hover:text-[var(--text-strong)]">{u.name || 'Anonymous'}</span>
+              <img src={u.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.firstName || 'Anonymous'}`} className="w-8 h-8 rounded-full border border-blue-800" alt="" />
+              <span className="font-semibold text-[var(--text-muted)] group-hover:text-[var(--text-strong)]">{u.firstName || 'Anonymous'}</span>
             </div>
           </div>
           <span className="font-mono font-bold text-blue-400">{formatValue(u[valueKey])}</span>

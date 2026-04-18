@@ -75,7 +75,7 @@ export default async function Home() {
                 <li key={user.id} className="flex justify-between items-center bg-[var(--panel-bg)] p-4 rounded-xl border border-[var(--panel-border)]">
                   <div className="flex items-center gap-4">
                     <div className="text-xl font-black text-blue-400 opacity-70 w-6">#{idx + 1}</div>
-                    <div className="font-semibold text-[var(--text-muted)]">{user.name || 'Anonymous'}</div>
+                    <div className="font-semibold text-[var(--text-muted)]">{user.firstName || 'Anonymous'}</div>
                   </div>
                   <div className="text-blue-400 font-mono font-bold">{Math.round(user.topWpm)} WPM</div>
                 </li>
