@@ -1,7 +1,5 @@
 import Link from 'next/link'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import prisma from '@/lib/db'
 
 export default async function Home() {
   const dailyChallenge = await prisma.challenge.findFirst({
@@ -50,7 +48,7 @@ export default async function Home() {
               </div>
               <h2 className="text-4xl font-bold text-[var(--text-strong)]">{dailyChallenge.title}</h2>
               <p className="text-[var(--text-muted)] max-w-lg">
-                Complete today's official challenge to maintain your streak and climb the global leaderboards.
+                Complete today&apos;s official challenge to maintain your streak and climb the global leaderboards.
               </p>
             </div>
             

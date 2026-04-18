@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import { 
   generateEasy, 
   generateMedium, 
@@ -7,7 +6,7 @@ import {
   generateSuperHard 
 } from '@/lib/challenge-generator'
 
-const prisma = new PrismaClient()
+import prisma from '@/lib/db'
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
@@ -18,7 +17,7 @@ export async function GET(request: Request) {
   try {
     const totalCount = await prisma.challenge.count()
     
-    let baseSlNo = totalCount + 1
+    const baseSlNo = totalCount + 1
     
     // Generate contents explicitly so we can safely extract titles out of them
     const eaContent = generateEasy()

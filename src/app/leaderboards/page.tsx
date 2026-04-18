@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from '@/lib/db'
 import Link from 'next/link'
-
-const prisma = new PrismaClient()
 
 export default async function LeaderboardsPage() {
   const [topWpm, mostCompleted, longestStreak] = await Promise.all([

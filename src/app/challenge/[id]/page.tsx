@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from '@/lib/db'
 import { notFound } from 'next/navigation'
 import ChallengeWorkspace from './ChallengeWorkspace'
 import { auth } from '@/auth'
-
-const prisma = new PrismaClient()
 
 export default async function ChallengePage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params

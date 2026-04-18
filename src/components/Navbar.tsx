@@ -1,11 +1,10 @@
 import Link from 'next/link'
-import { auth, signIn, signOut } from '@/auth'
+import { auth, signOut } from '@/auth'
 import { ThemeToggle } from './ThemeToggle'
 import { NavLinks } from './NavLinks'
-import { PrismaClient } from '@prisma/client'
 import { getEffectiveStreak } from '@/lib/streak'
 
-const prisma = new PrismaClient()
+import prisma from '@/lib/db'
 
 export async function Navbar() {
   const session = await auth()
