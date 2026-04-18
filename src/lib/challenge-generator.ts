@@ -13,7 +13,7 @@ export function generateEasy(wordCount = 30) {
 
 export function generateMedium(wordCount = 40) {
   // All cases, regular punctuation (comma, fullstop), and numbers
-  let sentence = []
+  const sentence = []
   for (let i = 0; i < wordCount; i++) {
     let word = ""
 
@@ -35,7 +35,7 @@ export function generateMedium(wordCount = 40) {
 
 export function generateHard(wordCount = 40) {
   // random words, all types of special characters, and numbers
-  let sentence = []
+  const sentence = []
   for (let i = 0; i < wordCount; i++) {
     let word = ""
 
@@ -58,7 +58,7 @@ export function generateHard(wordCount = 40) {
 
 export function generateSuperHard(wordCount = 40) {
   // mix random english words with pure random characters and numbers
-  let sentence = []
+  const sentence = []
   for (let i = 0; i < wordCount; i++) {
     const roll = Math.random()
 

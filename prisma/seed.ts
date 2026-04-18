@@ -9,6 +9,10 @@ import {
 const prisma = new PrismaClient()
 
 async function main() {
+  if (process.env.NODE_ENV === "production") {
+    console.log("Seeding skipped in production environment.");
+    return;
+  }
   console.log("Seeding database...")
 
   // Safely wipe attempts to bypass foreign-key constraints before deleting challenges

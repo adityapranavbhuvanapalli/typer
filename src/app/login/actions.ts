@@ -1,9 +1,7 @@
 "use server"
 
-import { PrismaClient } from "@prisma/client"
+import prisma from "@/lib/db"
 import bcrypt from "bcryptjs"
-
-const prisma = new PrismaClient()
 
 export async function checkUserExists(email: string) {
   const authEmail = email.includes('@') ? email : `${email.toLowerCase().replace(/\s/g, '')}@typer.local`

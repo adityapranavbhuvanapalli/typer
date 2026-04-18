@@ -1,11 +1,9 @@
 "use server"
 
-import { PrismaClient } from '@prisma/client'
+import prisma from '@/lib/db'
 import { auth } from '@/auth'
 import { revalidatePath } from 'next/cache'
 import { getEffectiveStreak } from '@/lib/streak'
-
-const prisma = new PrismaClient()
 
 export async function submitAttempt(challengeId: string, stats: { wpm: number, accuracy: number, timeSeconds: number, errors: number }) {
   try {

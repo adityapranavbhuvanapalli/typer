@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client'
 import Link from 'next/link'
 import { auth } from '@/auth'
 
-const prisma = new PrismaClient()
+import prisma from '@/lib/db'
 
 export default async function ProblemsPage(props: { searchParams: Promise<{ page?: string }> }) {
   const params = await props.searchParams
