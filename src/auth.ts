@@ -23,9 +23,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           firstName = data.name
         }
       }
-      const { name, ...rest } = data
       const user = await prisma.user.create({
-        data: { ...rest, firstName, lastName }
+        data: { ...data, firstName, lastName }
       })
       return user as any
     }

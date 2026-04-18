@@ -37,6 +37,7 @@ export async function registerUser(formData: FormData) {
       data: {
         email,
         password: hashedPassword,
+        name: (firstName ? firstName + (lastName ? ' ' + lastName : '') : email.split("@")[0]),
         firstName: firstName || email.split("@")[0], // Fallback to email prefix if skipped
         lastName: lastName || null,
         bio: bio || null,
