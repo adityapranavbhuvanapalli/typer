@@ -15,9 +15,10 @@ async function main() {
   }
   console.log("Seeding database...")
 
-  // Safely wipe attempts to bypass foreign-key constraints before deleting challenges
-  await prisma.attempt.deleteMany()
-  await prisma.challenge.deleteMany()
+  // SAFEGUARD: Never wipe the database in a shared/production environment.
+  // If you need to clear the database, do it manually or via a separate script.
+  // await prisma.attempt.deleteMany()
+  // await prisma.challenge.deleteMany()
 
   const difficulties = ['EASY', 'MEDIUM', 'HARD', 'SUPER_HARD']
 
