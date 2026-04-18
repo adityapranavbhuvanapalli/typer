@@ -26,10 +26,30 @@ export async function GET(request: Request) {
     const shContent = generateSuperHard()
 
     const newChallenges = [
-      { serialNo: baseSlNo, title: `Sl.No: ${baseSlNo} - ${eaContent.split(/\\s+/).slice(0, 4).join(' ')}...`, difficulty: 'EASY', content: eaContent },
-      { serialNo: baseSlNo + 1, title: `Sl.No: ${baseSlNo + 1} - ${mdContent.split(/\\s+/).slice(0, 4).join(' ')}...`, difficulty: 'MEDIUM', content: mdContent },
-      { serialNo: baseSlNo + 2, title: `Sl.No: ${baseSlNo + 2} - ${hdContent.split(/\\s+/).slice(0, 4).join(' ')}...`, difficulty: 'HARD', content: hdContent },
-      { serialNo: baseSlNo + 3, title: `Sl.No: ${baseSlNo + 3} - ${shContent.split(/\\s+/).slice(0, 4).join(' ')}...`, difficulty: 'SUPER_HARD', content: shContent }
+      { 
+        serialNo: baseSlNo, 
+        title: `${baseSlNo}. ${eaContent.trim().split(/\s+/).slice(0, 4).join(' ')}...`, 
+        difficulty: 'EASY', 
+        content: eaContent 
+      },
+      { 
+        serialNo: baseSlNo + 1, 
+        title: `${baseSlNo + 1}. ${mdContent.trim().split(/\s+/).slice(0, 4).join(' ')}...`, 
+        difficulty: 'MEDIUM', 
+        content: mdContent 
+      },
+      { 
+        serialNo: baseSlNo + 2, 
+        title: `${baseSlNo + 2}. ${hdContent.trim().split(/\s+/).slice(0, 4).join(' ')}...`, 
+        difficulty: 'HARD', 
+        content: hdContent 
+      },
+      { 
+        serialNo: baseSlNo + 3, 
+        title: `${baseSlNo + 3}. ${shContent.trim().split(/\s+/).slice(0, 4).join(' ')}...`, 
+        difficulty: 'SUPER_HARD', 
+        content: shContent 
+      }
     ]
 
     await prisma.challenge.createMany({
