@@ -3,6 +3,7 @@
 import { PrismaClient } from '@prisma/client'
 import { auth } from '@/auth'
 import { revalidatePath } from 'next/cache'
+import { getEffectiveStreak } from '@/lib/streak'
 
 const prisma = new PrismaClient()
 
@@ -49,23 +50,15 @@ export async function submitAttempt(challengeId: string, stats: { wpm: number, a
       const lastDailyStr = user.lastDailyDate ? new Date(user.lastDailyDate).toISOString().split('T')[0] : null
       
       if (lastDailyStr !== todayStr) {
-        if (!lastDailyStr) {
-          newCurrentStreak = 1 // First daily!
-        } else {
-          const lastDailyTime = new Date(user.lastDailyDate!).getTime()
-          const todayTime = new Date(todayStr + "T00:00:00.000Z").getTime()
-          const daysDiff = (todayTime - lastDailyTime) / (1000 * 60 * 60 * 24)
-          
-          if (daysDiff <= 1) {
-            // It's consecutive!
-            newCurrentStreak += 1
-          } else {
-            // Streak broken
-            newCurrentStreak = 1
-          }
-        }
+        // Use the utility to get the base streak (either current or 0 if expired)
+        const baseStreak = getEffectiveStreak({
+          currentStreak: user.currentStreak,
+          lastDailyDate: user.lastDailyDate
+        })
         
+        newCurrentStreak = baseStreak + 1
         newLastDailyDate = new Date(todayStr + "T00:00:00.000Z")
+        
         if (newCurrentStreak > newLongestStreak) {
           newLongestStreak = newCurrentStreak
         }
