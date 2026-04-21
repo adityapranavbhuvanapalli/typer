@@ -9,20 +9,19 @@ datasource db {
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -36,32 +35,28 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  password      String?
-  image         String?
-  
-  // Social & Profile Fields
-  bio           String?
-  website       String?
-  linkedin      String?
-  github        String?
-  
-  // Custom Typer Fields
-  averageWpm    Float     @default(0)
-  topWpm        Float     @default(0)
-  totalCompleted Int      @default(0)
-  currentStreak Int       @default(0)
-  longestStreak Int       @default(0)
-  lastDailyDate DateTime?
-  
-  createdAt     DateTime  @default(now())
-
-  accounts      Account[]
-  sessions      Session[]
-  attempts      Attempt[]
+  id             String    @id @default(cuid())
+  email          String?   @unique
+  emailVerified  DateTime?
+  password       String?
+  image          String?
+  bio            String?
+  website        String?
+  linkedin       String?
+  github         String?
+  averageWpm     Float     @default(0)
+  topWpm         Float     @default(0)
+  totalCompleted Int       @default(0)
+  currentStreak  Int       @default(0)
+  longestStreak  Int       @default(0)
+  lastDailyDate  DateTime?
+  createdAt      DateTime  @default(now())
+  firstName      String?
+  lastName       String?
+  name           String?
+  accounts       Account[]
+  attempts       Attempt[]
+  sessions       Session[]
 }
 
 model VerificationToken {
@@ -73,28 +68,25 @@ model VerificationToken {
 }
 
 model Challenge {
-  id          String   @id @default(cuid())
-  serialNo    Int      @unique
-  title       String
-  difficulty  String   // EASY, MEDIUM, HARD, SUPER_HARD
-  content     String   // The text to type
-  isDaily     Boolean  @default(false)
-  dailyDate   DateTime? @unique // midnight UTC date
-
-  createdAt   DateTime @default(now())
-  attempts    Attempt[]
+  id         String    @id @default(cuid())
+  serialNo   Int       @unique
+  title      String
+  difficulty String
+  content    String
+  isDaily    Boolean   @default(false)
+  dailyDate  DateTime? @unique
+  createdAt  DateTime  @default(now())
+  attempts   Attempt[]
 }
 
 model Attempt {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
   challengeId String
-  
   wpm         Float
   accuracy    Float
   timeSeconds Float
-  completedAt DateTime @default(now())
-
-  user        User      @relation(fields: [userId], references: [id])
+  completedAt DateTime  @default(now())
   challenge   Challenge @relation(fields: [challengeId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
 }

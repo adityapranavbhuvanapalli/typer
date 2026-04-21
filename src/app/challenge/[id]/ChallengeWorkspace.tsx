@@ -87,13 +87,23 @@ export default function ChallengeWorkspace({ challenge, isGuest }: { challenge: 
           <div className="pt-4 flex justify-center gap-4">
             <button 
               onClick={() => window.location.reload()}
-              className="px-6 py-3 rounded-lg bg-black hover:bg-gray-900 text-[var(--text-strong)] font-bold border border-gray-800 transition-colors"
+              disabled={isSaving}
+              className={`px-6 py-3 rounded-lg font-bold border transition-colors ${
+                isSaving 
+                  ? "bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed opacity-50" 
+                  : "bg-black hover:bg-gray-900 text-[var(--text-strong)] border-gray-800"
+              }`}
             >
               Retry
             </button>
             <Link 
-              href="/challenges"
-              className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/20 transition-all"
+              href={isSaving ? "#" : "/challenges"}
+              onClick={(e) => isSaving && e.preventDefault()}
+              className={`px-6 py-3 rounded-lg font-bold transition-all ${
+                isSaving 
+                  ? "bg-blue-600/50 text-white/50 cursor-not-allowed pointer-events-none" 
+                  : "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20"
+              }`}
             >
               {isSaving ? "Saving..." : "Next Problem"}
             </Link>
