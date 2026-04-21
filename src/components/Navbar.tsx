@@ -10,6 +10,8 @@ export async function Navbar() {
   const session = await auth()
   
   let currentStreak = 0
+  let lastDailyDate: Date | null = null
+
   if (session?.user?.id) {
     const userDb = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -21,8 +23,16 @@ export async function Navbar() {
         currentStreak: userDb.currentStreak,
         lastDailyDate: userDb.lastDailyDate
       })
+      lastDailyDate = userDb.lastDailyDate
     }
   }
+
+  // Calculate if the streak is "protected" (completed today)
+  const isProtected = lastDailyDate && 
+    new Date(lastDailyDate).toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
+  
+  // Highlight orange only if streak > 0 AND it's already protected today
+  const showOrange = currentStreak > 0 && !!isProtected;
   
   const dailyChallenge = await prisma.challenge.findFirst({
     where: { isDaily: true },
@@ -45,13 +55,13 @@ export async function Navbar() {
             <Link 
               href={dailyUrl}
               className={`flex items-center justify-center gap-1.5 px-3 py-1 shadow-inner border rounded-full font-bold transition-colors cursor-pointer ${
-                currentStreak > 0 
+                showOrange 
                   ? 'bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/30 text-orange-500' 
                   : 'bg-[var(--panel-border)]/30 hover:bg-[var(--panel-border)] border-[var(--panel-border)] text-[var(--text-muted)]'
               }`}
-              title="Play Daily Challenge"
+              title={showOrange ? "Streak Protected!" : "Complete today's challenge to protect your streak"}
             >
-              <span className={currentStreak === 0 ? 'opacity-30 grayscale' : ''}>🔥</span>
+              <span className={!showOrange ? 'opacity-30 grayscale' : ''}>🔥</span>
               <span>{currentStreak}</span>
             </Link>
             <div className="relative group pb-2 -mb-2">
