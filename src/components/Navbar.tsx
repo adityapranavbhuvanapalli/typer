@@ -22,38 +22,39 @@ export async function Navbar() {
         lastDailyDate: userDb.lastDailyDate
       })
     }
-  }
-  
-  const dailyChallenge = await prisma.challenge.findFirst({
-    where: { isDaily: true },
-    select: { id: true }
-  })
-  const dailyUrl = dailyChallenge ? `/challenge/${dailyChallenge.id}` : "/challenges"
-  
-  return (
-    <nav className="flex justify-between items-center px-8 py-4 border-b border-[var(--panel-border)] shadow-md bg-[var(--panel-bg)]/80 backdrop-blur-md sticky top-0 z-50 transition-all">
-      <Link href="/" className="text-3xl font-black tracking-tighter text-[var(--primary)] hover:text-[var(--text-strong)] transition-colors duration-200">
-        typer
-        <span className="text-[var(--text-strong)] text-3xl">.com</span>
-      </Link>
-      
-      <div className="flex space-x-8 items-center text-sm tracking-wide">
-        <NavLinks />
+
+    // A streak is "protected" only if it was completed TODAY.
+    // If it was completed yesterday, it's still an active streak, but needs to be played today.
+    const isProtected = userDb?.lastDailyDate && 
+      new Date(userDb.lastDailyDate).toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
+    
+    // Highlight orange only if streak > 0 AND it's already protected today
+    const showOrange = currentStreak > 0 && isProtected;
+
+    return (
+      <nav className="flex justify-between items-center px-8 py-4 border-b border-[var(--panel-border)] shadow-md bg-[var(--panel-bg)]/80 backdrop-blur-md sticky top-0 z-50 transition-all">
+        <Link href="/" className="text-3xl font-black tracking-tighter text-[var(--primary)] hover:text-[var(--text-strong)] transition-colors duration-200">
+          typer
+          <span className="text-[var(--text-strong)] text-3xl">.com</span>
+        </Link>
         
-        {session?.user ? (
-          <div className="flex items-center space-x-4 pl-4 border-l border-[var(--panel-border)]">
-            <Link 
-              href={dailyUrl}
-              className={`flex items-center justify-center gap-1.5 px-3 py-1 shadow-inner border rounded-full font-bold transition-colors cursor-pointer ${
-                currentStreak > 0 
-                  ? 'bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/30 text-orange-500' 
-                  : 'bg-[var(--panel-border)]/30 hover:bg-[var(--panel-border)] border-[var(--panel-border)] text-[var(--text-muted)]'
-              }`}
-              title="Play Daily Challenge"
-            >
-              <span className={currentStreak === 0 ? 'opacity-30 grayscale' : ''}>🔥</span>
-              <span>{currentStreak}</span>
-            </Link>
+        <div className="flex space-x-8 items-center text-sm tracking-wide">
+          <NavLinks />
+          
+          {session?.user ? (
+            <div className="flex items-center space-x-4 pl-4 border-l border-[var(--panel-border)]">
+              <Link 
+                href={dailyUrl}
+                className={`flex items-center justify-center gap-1.5 px-3 py-1 shadow-inner border rounded-full font-bold transition-colors cursor-pointer ${
+                  showOrange 
+                    ? 'bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/30 text-orange-500' 
+                    : 'bg-[var(--panel-border)]/30 hover:bg-[var(--panel-border)] border-[var(--panel-border)] text-[var(--text-muted)]'
+                }`}
+                title={showOrange ? "Streak Protected!" : "Complete today's challenge to protect your streak"}
+              >
+                <span className={!showOrange ? 'opacity-30 grayscale' : ''}>🔥</span>
+                <span>{currentStreak}</span>
+              </Link>
             <div className="relative group pb-2 -mb-2">
               <div className="flex items-center space-x-2 hover:bg-[var(--panel-bg)] px-3 py-1.5 rounded-full transition-all cursor-pointer">
                 <img src={session.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.name}`} alt="avatar" className="w-8 h-8 rounded-full border border-blue-500" />
