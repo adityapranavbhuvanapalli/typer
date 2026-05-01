@@ -5,8 +5,12 @@ import { NavLinks } from './NavLinks'
 import { getEffectiveStreak } from '@/lib/streak'
 
 import prisma from '@/lib/db'
+import { getCachedDailyChallenge } from '@/lib/cache'
 
 export async function Navbar() {
+  // Fire off independent cache query immediately
+  const dailyChallengePromise = getCachedDailyChallenge()
+  
   const session = await auth()
   
   let currentStreak = 0
@@ -34,10 +38,8 @@ export async function Navbar() {
   // Highlight orange only if streak > 0 AND it's already protected today
   const showOrange = currentStreak > 0 && !!isProtected;
   
-  const dailyChallenge = await prisma.challenge.findFirst({
-    where: { isDaily: true },
-    select: { id: true }
-  })
+  // Resolve the parallel daily challenge query
+  const dailyChallenge = await dailyChallengePromise
   const dailyUrl = dailyChallenge ? `/challenge/${dailyChallenge.id}` : "/challenges"
   
   return (

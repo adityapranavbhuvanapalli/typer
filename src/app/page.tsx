@@ -1,16 +1,11 @@
 import Link from 'next/link'
-import prisma from '@/lib/db'
+import { getCachedDailyChallenge, getCachedTopUsers } from '@/lib/cache'
 
 export default async function Home() {
-  const dailyChallenge = await prisma.challenge.findFirst({
-    where: { isDaily: true }
-  })
-
-  const topUsers = await prisma.user.findMany({
-    where: { totalCompleted: { gt: 0 } },
-    orderBy: { topWpm: 'desc' },
-    take: 5
-  })
+  const [dailyChallenge, topUsers] = await Promise.all([
+    getCachedDailyChallenge(),
+    getCachedTopUsers()
+  ])
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col gap-16">
