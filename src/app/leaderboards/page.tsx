@@ -1,11 +1,12 @@
 import prisma from '@/lib/db'
 import Link from 'next/link'
+import { getCachedTopWpmUsers, getCachedMostCompletedUsers, getCachedLongestStreakUsers } from '@/lib/cache'
 
 export default async function LeaderboardsPage() {
   const [topWpm, mostCompleted, longestStreak] = await Promise.all([
-    prisma.user.findMany({ orderBy: { topWpm: 'desc' }, take: 25 }),
-    prisma.user.findMany({ orderBy: { totalCompleted: 'desc' }, take: 25 }),
-    prisma.user.findMany({ orderBy: { longestStreak: 'desc' }, take: 25 })
+    getCachedTopWpmUsers(25),
+    getCachedMostCompletedUsers(25),
+    getCachedLongestStreakUsers(25)
   ])
 
   const renderList = (users: any[], valueKey: string, formatValue: (v: any) => string) => (

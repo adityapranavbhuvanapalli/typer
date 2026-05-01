@@ -5,11 +5,12 @@ import { auth } from '@/auth'
 
 export default async function ChallengePage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params
-  const session = await auth()
-  
-  const challenge = await prisma.challenge.findUnique({
-    where: { id: params.id }
-  })
+  const [session, challenge] = await Promise.all([
+    auth(),
+    prisma.challenge.findUnique({
+      where: { id: params.id }
+    })
+  ])
 
   if (!challenge) {
     notFound()

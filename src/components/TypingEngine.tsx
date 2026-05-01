@@ -99,12 +99,23 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
     // Gross WPM = (wpmTotalKeystrokes / 5) / TimeInMin
     let wpmTotalKeystrokes = 0
     let incorrectWordsCount = 0
+    let totalTargetChars = 0
+    let finalCorrectChars = 0
 
     targetWords.forEach((target, i) => {
       const typed = finalTypedWords[i] || ""
       wpmTotalKeystrokes += typed.length + 1 // +1 for space
+      totalTargetChars += target.length
+      
       if (typed !== target) {
         incorrectWordsCount++
+      }
+
+      // Calculate final accuracy purely by comparing the submitted strings vs target
+      for (let j = 0; j < Math.max(target.length, typed.length); j++) {
+        if (target[j] === typed[j]) {
+          finalCorrectChars++
+        }
       }
     })
 
@@ -116,7 +127,7 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
     let netWpm = grossWpm - (incorrectWordsCount / minutes)
     if (netWpm < 0) netWpm = 0
 
-    const accuracy = finalTotalKeys > 0 ? (finalCorrectKeys / finalTotalKeys) * 100 : 0
+    const accuracy = totalTargetChars > 0 ? (finalCorrectChars / totalTargetChars) * 100 : 0
 
     onComplete({
       wpm: netWpm,
@@ -169,14 +180,6 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
               key={wIdx} 
               className={`relative flex ${wordBgClass}`}
             >
-              {/* Active word cursor logic */}
-              {isActive && (
-                <div
-                  className="absolute left-0 bottom-0 top-0 w-0.5 bg-blue-500 animate-pulse transition-all duration-100"
-                  style={{ transform: `translateX(${currentTypedWord.length * 14.5}px)` }}
-                />
-              )}
-
               {/* Characters */}
               {word.split('').map((char, cIdx) => {
                 let colorClass = 'text-[var(--text-muted)]' // untyped
@@ -189,8 +192,13 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
                 }
                 
                 return (
-                  <span key={cIdx} className={`${colorClass} transition-colors duration-150`}>
-                    {char}
+                  <span key={cIdx} className="relative">
+                    {isActive && currentTypedWord.length === cIdx && (
+                      <span className="absolute -left-[1px] top-0 bottom-0 w-0.5 bg-blue-500 animate-pulse" />
+                    )}
+                    <span className={`${colorClass} transition-colors duration-150`}>
+                      {char}
+                    </span>
                   </span>
                 )
               })}
@@ -199,6 +207,13 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
               {typedObj.length > word.length && (
                 <span className="text-red-500 opacity-80">
                   {typedObj.slice(word.length)}
+                </span>
+              )}
+
+              {/* Cursor if at the very end of the word or extra chars */}
+              {isActive && currentTypedWord.length >= word.length && (
+                <span className="relative">
+                  <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-500 animate-pulse" />
                 </span>
               )}
             </div>

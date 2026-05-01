@@ -16,19 +16,12 @@ export async function Navbar() {
   let currentStreak = 0
   let lastDailyDate: Date | null = null
 
-  if (session?.user?.id) {
-    const userDb = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { currentStreak: true, lastDailyDate: true }
+  if (session?.user) {
+    currentStreak = getEffectiveStreak({
+      currentStreak: session.user.currentStreak || 0,
+      lastDailyDate: session.user.lastDailyDate || null
     })
-    
-    if (userDb) {
-      currentStreak = getEffectiveStreak({
-        currentStreak: userDb.currentStreak,
-        lastDailyDate: userDb.lastDailyDate
-      })
-      lastDailyDate = userDb.lastDailyDate
-    }
+    lastDailyDate = session.user.lastDailyDate || null
   }
 
   // Calculate if the streak is "protected" (completed today)
