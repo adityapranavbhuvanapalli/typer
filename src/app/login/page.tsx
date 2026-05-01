@@ -15,7 +15,8 @@ export default function CustomLoginPage() {
   const [loading, setLoading] = useState(false)
 
   // Profile Expansion State
-  const [name, setName] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [bio, setBio] = useState("")
   const [website, setWebsite] = useState("")
   const [linkedin, setLinkedin] = useState("")
@@ -62,7 +63,8 @@ export default function CustomLoginPage() {
     formData.append("password", password) // Still safely held in React memory
     
     if (!useDefaults) {
-      formData.append("name", name)
+      formData.append("firstName", firstName)
+      formData.append("lastName", lastName)
       formData.append("bio", bio)
       formData.append("website", website)
       formData.append("linkedin", linkedin)
@@ -169,14 +171,24 @@ export default function CustomLoginPage() {
               Almost there, <span className="text-[var(--primary)]">{username}</span>!
             </h3>
             
-            <input 
-              type="text" 
-              placeholder="Full Name / Display Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={loading}
-              className="w-full bg-[var(--panel-border)]/30 border border-[var(--panel-border)] rounded-xl px-5 py-3 text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-medium placeholder-[var(--text-muted)] text-sm"
-            />
+            <div className="flex gap-2">
+              <input 
+                type="text" 
+                placeholder="First Name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                disabled={loading}
+                className="w-1/2 bg-[var(--panel-border)]/30 border border-[var(--panel-border)] rounded-xl px-4 py-3 text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-medium placeholder-[var(--text-muted)] text-sm"
+              />
+              <input 
+                type="text" 
+                placeholder="Last Name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                disabled={loading}
+                className="w-1/2 bg-[var(--panel-border)]/30 border border-[var(--panel-border)] rounded-xl px-4 py-3 text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-medium placeholder-[var(--text-muted)] text-sm"
+              />
+            </div>
             <input 
               type="text" 
               placeholder="Short Bio (Optional)"

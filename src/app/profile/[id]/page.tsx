@@ -24,12 +24,12 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
       {/* Profile Header */}
       <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12">
         <img 
-          src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
+          src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName || 'Anonymous'}`} 
           className="w-32 h-32 rounded-full border-4 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.3)]" 
           alt="Avatar" 
         />
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-black text-[var(--text-strong)] mb-2">{user.name || 'Anonymous User'}</h1>
+          <h1 className="text-4xl font-black text-[var(--text-strong)] mb-2">{user.firstName || 'Anonymous User'}</h1>
           <p className="text-[var(--text-muted)]">Joined {new Date(user.createdAt).toLocaleDateString()}</p>
         </div>
         

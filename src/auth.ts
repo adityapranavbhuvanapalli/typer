@@ -9,7 +9,26 @@ import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter: {
+    ...PrismaAdapter(prisma),
+    createUser: async (data: any) => {
+      let firstName = null
+      let lastName = null
+      if (data.name) {
+        const parts = data.name.trim().split(/\s+/)
+        if (parts.length > 1) {
+          lastName = parts.pop() || null
+          firstName = parts.join(' ')
+        } else {
+          firstName = data.name
+        }
+      }
+      const user = await prisma.user.create({
+        data: { ...data, firstName, lastName }
+      })
+      return user as any
+    }
+  },
   providers: [
     Google,
     GitHub,
@@ -54,12 +73,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     jwt({ token, user }) {
       if (user) {
         token.id = user.id
+        token.firstName = user.firstName
+        token.lastName = user.lastName
       }
       return token
     },
     session({ session, token }) {
       if (token?.id) {
         session.user.id = token.id as string
+        session.user.firstName = token.firstName as string | null | undefined
+        session.user.lastName = token.lastName as string | null | undefined
       }
       return session
     }

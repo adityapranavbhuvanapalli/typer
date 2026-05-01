@@ -66,8 +66,8 @@ export async function Navbar() {
             </Link>
             <div className="relative group pb-2 -mb-2">
               <div className="flex items-center space-x-2 hover:bg-[var(--panel-bg)] px-3 py-1.5 rounded-full transition-all cursor-pointer">
-                <img src={session.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.name}`} alt="avatar" className="w-8 h-8 rounded-full border border-blue-500" />
-                <span className="text-[var(--text-muted)] font-bold">{session.user.name} ▾</span>
+                <img src={session.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.firstName || 'Anonymous'}`} alt="avatar" className="w-8 h-8 rounded-full border border-blue-500" />
+                <span className="text-[var(--text-muted)] font-bold">{session.user.firstName || 'Anonymous'} ▾</span>
               </div>
               
               <div className="absolute right-0 top-full w-48 bg-[var(--panel-bg)] border border-[var(--panel-border)] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden translate-y-2 group-hover:translate-y-0">
