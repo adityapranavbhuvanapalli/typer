@@ -12,7 +12,7 @@ export default async function ProblemsPage(props: { searchParams: Promise<{ page
   const session = await auth()
   
   // We want to fetch challenges, and potentially check if user has attempted them
-  const [challenges, totalCount] = await Promise.all([
+  const [challenges, totalCount, attempts] = await Promise.all([
     prisma.challenge.findMany({
       orderBy: [
         { isDaily: 'desc' },
@@ -21,20 +21,16 @@ export default async function ProblemsPage(props: { searchParams: Promise<{ page
       skip,
       take: pageSize
     }),
-    prisma.challenge.count()
+    prisma.challenge.count(),
+    session?.user?.id ? prisma.attempt.findMany({
+      where: { userId: session.user.id },
+      select: { challengeId: true }
+    }) : Promise.resolve([])
   ])
   
   const totalPages = Math.ceil(totalCount / pageSize)
 
-  // If user is logged in, fetch their attempts to show "completed" checkmarks
-  let completedChallengeIds = new Set<string>()
-  if (session?.user?.id) {
-    const attempts = await prisma.attempt.findMany({
-      where: { userId: session.user.id },
-      select: { challengeId: true }
-    })
-    completedChallengeIds = new Set(attempts.map(a => a.challengeId))
-  }
+  const completedChallengeIds = new Set(attempts.map(a => a.challengeId))
 
   const getDifficultyColor = (diff: string) => {
     switch(diff) {

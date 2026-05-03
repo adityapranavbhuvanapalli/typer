@@ -4,15 +4,17 @@ import UserGraphs from './UserGraphs'
 
 export default async function ProfilePage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params
-  const user = await prisma.user.findUnique({
-    where: { id: params.id },
-    include: { attempts: true }
-  })
+  const [user, totalUsersWithCompleted] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: params.id },
+      include: { attempts: true }
+    }),
+    prisma.user.count({ where: { totalCompleted: { gt: 0 } } })
+  ])
 
   if (!user) notFound()
 
   // Percentiles (Fastest Query logic)
-  const totalUsersWithCompleted = await prisma.user.count({ where: { totalCompleted: { gt: 0 } } })
   const usersSlowerThanMe = await prisma.user.count({
     where: { totalCompleted: { gt: 0 }, topWpm: { lt: user.topWpm } }
   })

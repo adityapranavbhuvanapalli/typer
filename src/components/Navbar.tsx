@@ -5,26 +5,23 @@ import { NavLinks } from './NavLinks'
 import { getEffectiveStreak } from '@/lib/streak'
 
 import prisma from '@/lib/db'
+import { getCachedDailyChallenge } from '@/lib/cache'
 
 export async function Navbar() {
+  // Fire off independent cache query immediately
+  const dailyChallengePromise = getCachedDailyChallenge()
+  
   const session = await auth()
   
   let currentStreak = 0
   let lastDailyDate: Date | null = null
 
-  if (session?.user?.id) {
-    const userDb = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { currentStreak: true, lastDailyDate: true }
+  if (session?.user) {
+    currentStreak = getEffectiveStreak({
+      currentStreak: session.user.currentStreak || 0,
+      lastDailyDate: session.user.lastDailyDate || null
     })
-    
-    if (userDb) {
-      currentStreak = getEffectiveStreak({
-        currentStreak: userDb.currentStreak,
-        lastDailyDate: userDb.lastDailyDate
-      })
-      lastDailyDate = userDb.lastDailyDate
-    }
+    lastDailyDate = session.user.lastDailyDate || null
   }
 
   // Calculate if the streak is "protected" (completed today)
@@ -34,10 +31,8 @@ export async function Navbar() {
   // Highlight orange only if streak > 0 AND it's already protected today
   const showOrange = currentStreak > 0 && !!isProtected;
   
-  const dailyChallenge = await prisma.challenge.findFirst({
-    where: { isDaily: true },
-    select: { id: true }
-  })
+  // Resolve the parallel daily challenge query
+  const dailyChallenge = await dailyChallengePromise
   const dailyUrl = dailyChallenge ? `/challenge/${dailyChallenge.id}` : "/challenges"
   
   return (

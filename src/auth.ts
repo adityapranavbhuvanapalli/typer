@@ -70,12 +70,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: '/login', // Intercept the default ugly page
   },
   callbacks: {
-    jwt({ token, user }) {
+    jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
         token.firstName = user.firstName
         token.lastName = user.lastName
+        token.currentStreak = user.currentStreak
+        token.lastDailyDate = user.lastDailyDate
       }
+      if (trigger === "update" && session?.firstName) {
+         token.firstName = session.firstName
+         token.lastName = session.lastName
+      }
+      // Optional: Add trigger="update" handling for streak later if needed
       return token
     },
     session({ session, token }) {
@@ -83,6 +90,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.id as string
         session.user.firstName = token.firstName as string | null | undefined
         session.user.lastName = token.lastName as string | null | undefined
+        session.user.currentStreak = token.currentStreak as number | undefined
+        session.user.lastDailyDate = token.lastDailyDate as Date | null | undefined
       }
       return session
     }
