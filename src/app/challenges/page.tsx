@@ -6,7 +6,7 @@ import { getCachedDailyChallenge } from '@/lib/cache'
 export default async function ProblemsPage(props: { searchParams: Promise<{ page?: string }> }) {
   const params = await props.searchParams
   const page = parseInt(params.page || '1') || 1
-  const pageSize = 5
+  const pageSize = 25
   const skip = (page - 1) * pageSize
 
   const session = await auth()
