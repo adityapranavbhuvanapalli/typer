@@ -33,6 +33,24 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
 
   const percentile = totalUsersWithCompleted === 0 ? 0 : (usersSlowerThanMe / totalUsersWithCompleted) * 100
 
+  // Serialize data for client components to avoid serialization issues
+  const serializedUser = {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    username: user.username,
+    bio: user.bio,
+    website: user.website,
+    linkedin: user.linkedin,
+    github: user.github,
+    image: user.image
+  }
+
+  const serializedAttempts = user.attempts.map(a => ({
+    ...a,
+    completedAt: a.completedAt.toISOString(),
+  }))
+
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       {/* Profile Header */}
@@ -48,7 +66,7 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
               {user.firstName || user.lastName ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Anonymous User'}
             </h1>
             {isOwnProfile && (
-              <EditProfileModal user={user as any} />
+              <EditProfileModal user={serializedUser} />
             )}
           </div>
           <p className="text-[var(--primary)] font-bold text-lg mb-2">@{user.username}</p>
@@ -125,7 +143,7 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
       </div>
 
       {/* Main Analysis Component */}
-      <UserGraphs attempts={user.attempts} />
+      <UserGraphs attempts={serializedAttempts} />
 
     </div>
   )

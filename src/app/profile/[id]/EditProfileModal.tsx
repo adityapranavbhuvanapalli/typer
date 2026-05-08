@@ -87,7 +87,7 @@ export default function EditProfileModal({ user }: { user: any }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">First Name</label>
+                  <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">First Name *</label>
                   <input
                     type="text"
                     name="firstName"
@@ -98,7 +98,7 @@ export default function EditProfileModal({ user }: { user: any }) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Last Name</label>
+                  <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Last Name *</label>
                   <input
                     type="text"
                     name="lastName"
@@ -111,7 +111,7 @@ export default function EditProfileModal({ user }: { user: any }) {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Username</label>
+                <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Username *</label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--primary)] font-bold">@</span>
                   <input

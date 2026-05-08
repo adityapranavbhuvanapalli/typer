@@ -113,7 +113,7 @@ export default function CustomLoginPage() {
               <div>
                 <input 
                   type="text" 
-                  placeholder="Username or Email"
+                  placeholder="Username or Email *"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={loading}
@@ -123,7 +123,7 @@ export default function CustomLoginPage() {
               <div>
                 <input 
                   type="password" 
-                  placeholder="Password"
+                  placeholder="Password *"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
@@ -177,7 +177,7 @@ export default function CustomLoginPage() {
             <div className="flex gap-2">
               <input 
                 type="text" 
-                placeholder="First Name"
+                placeholder="First Name *"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 disabled={loading}
@@ -185,7 +185,7 @@ export default function CustomLoginPage() {
               />
               <input 
                 type="text" 
-                placeholder="Last Name"
+                placeholder="Last Name *"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 disabled={loading}
