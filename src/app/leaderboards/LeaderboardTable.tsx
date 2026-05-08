@@ -20,11 +20,14 @@ interface LeaderboardTableProps {
   avgWpmUsers: LeaderboardUser[]
   mostCompletedUsers: LeaderboardUser[]
   longestStreakUsers: LeaderboardUser[]
+  page: number
+  totalPages: number
+  pageSize: number
 }
 
 type TabType = 'top_speed' | 'avg_speed' | 'solved' | 'streak'
 
-export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostCompletedUsers, longestStreakUsers }: LeaderboardTableProps) {
+export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostCompletedUsers, longestStreakUsers, page, totalPages, pageSize }: LeaderboardTableProps) {
   const [activeTab, setActiveTab] = useState<TabType>('top_speed')
   
   const getActiveData = () => {
@@ -99,16 +102,22 @@ export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostComplet
                 </td>
               </tr>
             )}
-            {activeData.map((user, i) => (
+            {activeData.map((user, i) => {
+              const rank = (page - 1) * pageSize + i + 1;
+              const isFirst = rank === 1;
+              const isSecond = rank === 2;
+              const isThird = rank === 3;
+              
+              return (
               <tr key={user.id} className="hover:bg-[var(--panel-border)]/50 transition-colors group">
                 <td className="p-4">
                   <span className={`w-12 block font-bold font-mono text-sm ${
-                    i === 0 ? 'text-yellow-500 flex items-center gap-2' :
-                    i === 1 ? 'text-gray-400 flex items-center gap-2' :
-                    i === 2 ? 'text-amber-600 flex items-center gap-2' :
+                    isFirst ? 'text-yellow-500 flex items-center gap-2' :
+                    isSecond ? 'text-gray-400 flex items-center gap-2' :
+                    isThird ? 'text-amber-600 flex items-center gap-2' :
                     'text-[var(--text-muted)] pl-[22px]'
                   }`}>
-                    {i < 3 ? <Trophy size={14} className="inline-block" /> : ''} #{i + 1}
+                    {rank <= 3 ? <Trophy size={14} className="inline-block" /> : ''} #{rank}
                   </span>
                 </td>
                 <td className="p-4">
@@ -138,10 +147,28 @@ export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostComplet
                   </td>
                 )}
               </tr>
-            ))}
+            )})}
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 p-6 border-t border-[var(--panel-border)] bg-[var(--panel-bg)]/50">
+          {page > 1 ? (
+            <Link href={`/leaderboards?page=${page - 1}`} className="px-6 py-2 bg-[var(--panel-bg)] hover:bg-[var(--panel-border)] border border-[var(--panel-border)] rounded-lg text-[var(--text-strong)] font-semibold transition-colors">&lt;</Link>
+          ) : (
+            <button disabled className="px-6 py-2 bg-[var(--panel-bg)]/50 border border-[var(--panel-border)]/50 rounded-lg text-[var(--text-muted)] opacity-50 cursor-not-allowed font-semibold">&lt;</button>
+          )}
+          
+          <span className="text-[var(--text-muted)] font-medium">Page {page} of {totalPages}</span>
+
+          {page < totalPages ? (
+            <Link href={`/leaderboards?page=${page + 1}`} className="px-6 py-2 bg-[var(--panel-bg)] hover:bg-[var(--panel-border)] border border-[var(--panel-border)] rounded-lg text-[var(--text-strong)] font-semibold transition-colors">&gt;</Link>
+          ) : (
+            <button disabled className="px-6 py-2 bg-[var(--panel-bg)]/50 border border-[var(--panel-border)]/50 rounded-lg text-[var(--text-muted)] opacity-50 cursor-not-allowed font-semibold">&gt;</button>
+          )}
+        </div>
+      )}
 
     </div>
   )

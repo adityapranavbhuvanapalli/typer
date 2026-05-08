@@ -5,13 +5,21 @@ import { getCachedTopWpmUsers, getCachedMostCompletedUsers, getCachedLongestStre
 // Next.js config to revalidate periodically or keep dynamic
 export const revalidate = 60 // regenerate page every 60 seconds
 
-export default async function LeaderboardsPage() {
-  const [topWpm, avgWpm, mostCompleted, longestStreak] = await Promise.all([
-    getCachedTopWpmUsers(25),
-    prisma.user.findMany({ orderBy: { averageWpm: 'desc' }, take: 25 }),
-    getCachedMostCompletedUsers(25),
-    getCachedLongestStreakUsers(25)
+export default async function LeaderboardsPage(props: { searchParams: Promise<{ page?: string }> }) {
+  const params = await props.searchParams
+  const page = parseInt(params.page || '1') || 1
+  const pageSize = 25
+  const skip = (page - 1) * pageSize
+
+  const [topWpm, avgWpm, mostCompleted, longestStreak, totalCount] = await Promise.all([
+    getCachedTopWpmUsers(pageSize, skip),
+    prisma.user.findMany({ orderBy: { averageWpm: 'desc' }, take: pageSize, skip }),
+    getCachedMostCompletedUsers(pageSize, skip),
+    getCachedLongestStreakUsers(pageSize, skip),
+    prisma.user.count({ where: { totalCompleted: { gt: 0 } } })
   ])
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
   // Serialize to avoid passing Date objects to Client Component
   const serialize = (users: any[]) => users.map(u => ({
@@ -38,6 +46,9 @@ export default async function LeaderboardsPage() {
         avgWpmUsers={serialize(avgWpm)} 
         mostCompletedUsers={serialize(mostCompleted)} 
         longestStreakUsers={serialize(longestStreak)} 
+        page={page}
+        totalPages={totalPages}
+        pageSize={pageSize}
       />
     </div>
   )
