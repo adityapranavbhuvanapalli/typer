@@ -53,23 +53,26 @@ export default function CustomLoginPage() {
     }
   }
 
-  const handleFormalRegistration = async (useDefaults: boolean) => {
+  const handleFormalRegistration = async () => {
+    if (!firstName || !lastName) {
+      setError("First Name and Last Name are mandatory.")
+      return
+    }
+
     setLoading(true)
     setError("")
     
     const formData = new FormData()
     const authEmail = username.includes('@') ? username : `${username.toLowerCase().replace(/\s/g, '')}@typer.local`
     formData.append("email", authEmail)
-    formData.append("password", password) // Still safely held in React memory
+    formData.append("password", password)
     
-    if (!useDefaults) {
-      formData.append("firstName", firstName)
-      formData.append("lastName", lastName)
-      formData.append("bio", bio)
-      formData.append("website", website)
-      formData.append("linkedin", linkedin)
-      formData.append("github", github)
-    }
+    formData.append("firstName", firstName)
+    formData.append("lastName", lastName)
+    formData.append("bio", bio)
+    formData.append("website", website)
+    formData.append("linkedin", linkedin)
+    formData.append("github", github)
 
     const result = await registerUser(formData)
     
@@ -222,20 +225,13 @@ export default function CustomLoginPage() {
               className="w-full bg-[var(--panel-border)]/30 border border-[var(--panel-border)] rounded-xl px-5 py-3 text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-medium placeholder-[var(--text-muted)] text-sm"
             />
 
-            <div className="pt-4 space-y-3">
+            <div className="pt-4">
               <button 
-                onClick={() => handleFormalRegistration(false)}
+                onClick={() => handleFormalRegistration()}
                 disabled={loading}
                 className="w-full bg-[var(--primary)] hover:bg-blue-600 active:scale-95 text-white font-bold py-3.5 rounded-xl shadow-[0_4px_15px_rgba(59,130,246,0.3)] transition-all flex items-center justify-center disabled:opacity-50"
               >
                 {loading ? "Creating Profile..." : "Complete Profile & Start Typing"}
-              </button>
-              <button 
-                onClick={() => handleFormalRegistration(true)}
-                disabled={loading}
-                className="w-full bg-transparent hover:bg-[var(--panel-border)] border border-[var(--panel-border)] active:scale-95 text-[var(--text-muted)] font-bold py-3 rounded-xl transition-all flex items-center justify-center disabled:opacity-50"
-              >
-                Skip & Use Defaults
               </button>
             </div>
           </div>
