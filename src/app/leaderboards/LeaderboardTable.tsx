@@ -6,7 +6,7 @@ import { Zap, Activity, Flame, CalendarDays, Trophy } from 'lucide-react'
 // Define the User type we expect
 export interface LeaderboardUser {
   id: string
-  firstName: string | null
+  name: string | null
   image: string | null
   topWpm: number
   averageWpm: number
@@ -102,14 +102,19 @@ export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostComplet
             {activeData.map((user, i) => (
               <tr key={user.id} className="hover:bg-[var(--panel-border)]/50 transition-colors group">
                 <td className="p-4">
-                  <span className={`w-12 block font-bold font-mono text-sm ${i < 3 ? 'text-yellow-500 flex items-center gap-2' : 'text-[var(--text-muted)] pl-[22px]'}`}>
+                  <span className={`w-12 block font-bold font-mono text-sm ${
+                    i === 0 ? 'text-yellow-500 flex items-center gap-2' :
+                    i === 1 ? 'text-gray-400 flex items-center gap-2' :
+                    i === 2 ? 'text-amber-600 flex items-center gap-2' :
+                    'text-[var(--text-muted)] pl-[22px]'
+                  }`}>
                     {i < 3 ? <Trophy size={14} className="inline-block" /> : ''} #{i + 1}
                   </span>
                 </td>
                 <td className="p-4">
                   <Link href={`/profile/${user.id}`} className="flex items-center gap-3 w-max">
-                    <img src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName || 'Anonymous'}`} className="w-8 h-8 rounded-full border border-gray-600 group-hover:border-blue-500 transition-colors" alt="" />
-                    <span className="font-semibold text-[var(--text-strong)] hover:underline decoration-blue-500 underline-offset-4">{user.firstName || 'Anonymous'}</span>
+                    <img src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name || 'Anonymous'}`} className="w-8 h-8 rounded-full border border-gray-600 group-hover:border-blue-500 transition-colors" alt="" />
+                    <span className="font-semibold text-[var(--text-strong)] hover:underline decoration-blue-500 underline-offset-4">{user.name || 'Anonymous'}</span>
                   </Link>
                 </td>
                 {activeTab === 'top_speed' && (

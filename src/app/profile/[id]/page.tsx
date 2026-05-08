@@ -18,23 +18,25 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
   const usersSlowerThanMe = await prisma.user.count({
     where: { totalCompleted: { gt: 0 }, topWpm: { lt: user.topWpm } }
   })
-  
+
   const percentile = totalUsersWithCompleted === 0 ? 0 : (usersSlowerThanMe / totalUsersWithCompleted) * 100
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       {/* Profile Header */}
       <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12">
-        <img 
-          src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName || 'Anonymous'}`} 
-          className="w-32 h-32 rounded-full border-4 border-[var(--metric-speed)] shadow-lg" 
-          alt="Avatar" 
+        <img
+          src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName || 'Anonymous'}`}
+          className="w-32 h-32 rounded-full border-4 border-[var(--metric-speed)] shadow-lg"
+          alt="Avatar"
         />
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-black text-[var(--text-strong)] mb-2">{user.firstName || 'Anonymous User'}</h1>
-          <p className="text-[var(--text-muted)]">Joined {new Date(user.createdAt).toLocaleDateString()}</p>
+          <h1 className="text-4xl font-black text-[var(--text-strong)] mb-1">
+            {user.firstName || user.lastName ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Anonymous User'}
+          </h1>
+          <p className="text-[var(--text-muted)] text-sm">Joined {new Date(user.createdAt).toLocaleDateString()}</p>
         </div>
-        
+
         {/* Highlight Stats */}
         <div className="flex gap-4">
           <div className="bg-[var(--panel-bg)] border border-[var(--metric-speed)]/30 p-4 rounded-xl text-center">
@@ -59,8 +61,8 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
             <div className="mt-4 md:mt-0 text-right">
               <p className="text-xs text-[var(--text-muted)] mb-1">Global Standing based on Top WPM</p>
               <div className="w-64 h-3 bg-[var(--panel-border)] rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-[var(--hero-from)] to-[var(--hero-to)]" 
+                <div
+                  className="h-full bg-gradient-to-r from-[var(--hero-from)] to-[var(--hero-to)]"
                   style={{ width: `${percentile}%` }}
                 />
               </div>
