@@ -6,6 +6,7 @@ declare module "next-auth" {
       id: string
       firstName?: string | null
       lastName?: string | null
+      username?: string | null
       currentStreak?: number
       lastDailyDate?: Date | null
     } & DefaultSession["user"]
@@ -14,6 +15,7 @@ declare module "next-auth" {
   interface User extends DefaultUser {
     firstName?: string | null
     lastName?: string | null
+    username?: string | null
     currentStreak?: number
     lastDailyDate?: Date | null
   }
