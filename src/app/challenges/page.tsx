@@ -6,7 +6,7 @@ import prisma from '@/lib/db'
 export default async function ProblemsPage(props: { searchParams: Promise<{ page?: string }> }) {
   const params = await props.searchParams
   const page = parseInt(params.page || '1') || 1
-  const pageSize = 25
+  const pageSize = 5
   const skip = (page - 1) * pageSize
 
   const session = await auth()
@@ -114,25 +114,25 @@ export default async function ProblemsPage(props: { searchParams: Promise<{ page
             })}
           </tbody>
         </table>
+
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-4 p-6 border-t border-[var(--panel-border)] bg-[var(--panel-bg)]/50">
+            {page > 1 ? (
+              <Link href={`/challenges?page=${page - 1}`} className="px-6 py-2 bg-[var(--panel-bg)] hover:bg-[var(--panel-border)] border border-[var(--panel-border)] rounded-lg text-[var(--text-strong)] font-semibold transition-colors">&lt;</Link>
+            ) : (
+              <button disabled className="px-6 py-2 bg-[var(--panel-bg)]/50 border border-[var(--panel-border)]/50 rounded-lg text-[var(--text-muted)] opacity-50 cursor-not-allowed font-semibold">&lt;</button>
+            )}
+            
+            <span className="text-[var(--text-muted)] font-medium">Page {page} of {totalPages}</span>
+
+            {page < totalPages ? (
+              <Link href={`/challenges?page=${page + 1}`} className="px-6 py-2 bg-[var(--panel-bg)] hover:bg-[var(--panel-border)] border border-[var(--panel-border)] rounded-lg text-[var(--text-strong)] font-semibold transition-colors">&gt;</Link>
+            ) : (
+              <button disabled className="px-6 py-2 bg-[var(--panel-bg)]/50 border border-[var(--panel-border)]/50 rounded-lg text-[var(--text-muted)] opacity-50 cursor-not-allowed font-semibold">&gt;</button>
+            )}
+          </div>
+        )}
       </div>
-
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-8">
-          {page > 1 ? (
-            <Link href={`/challenges?page=${page - 1}`} className="px-6 py-2 bg-[var(--panel-bg)] hover:bg-[var(--panel-border)] border border-[var(--panel-border)] rounded-lg text-[var(--text-strong)] font-semibold transition-colors">&lt;</Link>
-          ) : (
-            <button disabled className="px-6 py-2 bg-[var(--panel-bg)]/50 border border-[var(--panel-border)]/50 rounded-lg text-[var(--text-muted)] opacity-50 cursor-not-allowed font-semibold">&lt;</button>
-          )}
-          
-          <span className="text-[var(--text-muted)] font-medium">Page {page} of {totalPages}</span>
-
-          {page < totalPages ? (
-            <Link href={`/challenges?page=${page + 1}`} className="px-6 py-2 bg-[var(--panel-bg)] hover:bg-[var(--panel-border)] border border-[var(--panel-border)] rounded-lg text-[var(--text-strong)] font-semibold transition-colors">&gt;</Link>
-          ) : (
-            <button disabled className="px-6 py-2 bg-[var(--panel-bg)]/50 border border-[var(--panel-border)]/50 rounded-lg text-[var(--text-muted)] opacity-50 cursor-not-allowed font-semibold">&gt;</button>
-          )}
-        </div>
-      )}
     </div>
   )
 }

@@ -8,7 +8,7 @@ export const revalidate = 60 // regenerate page every 60 seconds
 export default async function LeaderboardsPage(props: { searchParams: Promise<{ page?: string }> }) {
   const params = await props.searchParams
   const page = parseInt(params.page || '1') || 1
-  const pageSize = 25
+  const pageSize = 5
   const skip = (page - 1) * pageSize
 
   const [topWpm, avgWpm, mostCompleted, longestStreak, totalCount] = await Promise.all([
