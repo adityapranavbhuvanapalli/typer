@@ -147,7 +147,7 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
       onClick={() => containerRef.current?.focus()}
     >
       {!isFocused && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--panel-bg)]/60 backdrop-blur-[2px]">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--panel-bg)]/80 backdrop-blur-[2px]">
           <p className="text-[var(--text-strong)] text-xl font-medium tracking-wide">Click or press any key to focus</p>
         </div>
       )}
@@ -170,9 +170,9 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
 
           let wordBgClass = 'px-1 -mx-1 transition-colors '
           if (isActive) {
-            wordBgClass += hasTypo ? 'bg-red-500/20 rounded' : 'bg-gray-500/20 dark:bg-white/10 rounded'
+            wordBgClass += hasTypo ? 'bg-[var(--error-light)] rounded' : 'bg-[var(--panel-border)]/30 rounded'
           } else if (isPast && hasTypo) {
-            wordBgClass += 'border-b-2 border-red-500'
+            wordBgClass += 'border-b-2 border-[var(--error)]'
           }
 
           return (
@@ -180,6 +180,7 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
               key={wIdx} 
               className={`relative flex ${wordBgClass}`}
             >
+
               {/* Characters */}
               {word.split('').map((char, cIdx) => {
                 let colorClass = 'text-[var(--text-muted)]' // untyped
@@ -187,14 +188,14 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
                 if (isActive || isPast) {
                   if (cIdx < typedObj.length) {
                     const typedChar = typedObj[cIdx]
-                    colorClass = typedChar === char ? 'text-[var(--text-strong)]' : 'text-red-500 font-bold'
+                    colorClass = typedChar === char ? 'text-[var(--text-strong)]' : 'text-[var(--error)] font-bold'
                   }
                 }
                 
                 return (
                   <span key={cIdx} className="relative">
                     {isActive && currentTypedWord.length === cIdx && (
-                      <span className="absolute -left-[1px] top-0 bottom-0 w-0.5 bg-blue-500 animate-pulse" />
+                      <span className="absolute -left-[1px] top-0 bottom-0 w-0.5 bg-[var(--cursor)] animate-pulse" />
                     )}
                     <span className={`${colorClass} transition-colors duration-150`}>
                       {char}
@@ -205,7 +206,7 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
 
               {/* Extra typed characters */}
               {typedObj.length > word.length && (
-                <span className="text-red-500 opacity-80">
+                <span className="text-[var(--error)] opacity-80">
                   {typedObj.slice(word.length)}
                 </span>
               )}
@@ -213,7 +214,7 @@ export default function TypingEngine({ content, onComplete }: TypingEngineProps)
               {/* Cursor if at the very end of the word or extra chars */}
               {isActive && currentTypedWord.length >= word.length && (
                 <span className="relative">
-                  <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-500 animate-pulse" />
+                  <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-[var(--cursor)] animate-pulse" />
                 </span>
               )}
             </div>

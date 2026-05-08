@@ -58,7 +58,7 @@ export default function CustomLoginPage() {
     setError("")
     
     const formData = new FormData()
-    const authEmail = username.includes('@') ? username : `${username.toLowerCase().replace(/\\s/g, '')}@typer.local`
+    const authEmail = username.includes('@') ? username : `${username.toLowerCase().replace(/\s/g, '')}@typer.local`
     formData.append("email", authEmail)
     formData.append("password", password) // Still safely held in React memory
     

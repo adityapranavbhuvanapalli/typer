@@ -15,6 +15,29 @@
   
   --error: #ef4444;
   --success: #22c55e;
+
+  /* Refined Semantic Theme Logic (Light Mode) */
+  --hero-from: #1e3a8a; 
+  --hero-to: #2563eb; 
+
+  --badge-blue-bg: #dbeafe;
+  --badge-blue-text: #1d4ed8;
+  --badge-blue-border: #bfdbfe;
+
+  --metric-speed: #1d4ed8; 
+  --metric-avg: #7e22ce;   
+  --metric-solved: #15803d; 
+  --metric-streak: #c2410c; 
+
+  /* Difficulty Levels */
+  --diff-easy: #15803d;
+  --diff-med: #a16207;   /* yellow-700 approx */
+  --diff-hard: #c2410c;
+  --diff-super: #b91c1c; 
+
+  /* Functional UI */
+  --cursor: #1e40af;
+  --error-light: rgba(239, 68, 68, 0.15);
 }
 
 .dark {
@@ -33,7 +56,36 @@
     
     --error: #f48771;
     --success: #89d185;
+
+    /* Refined Semantic Theme Logic (Dark Mode) */
+    --hero-from: #ffffff;
+    --hero-to: #93c5fd; 
+
+    --badge-blue-bg: rgba(59, 130, 246, 0.2);
+    --badge-blue-text: #93c5fd;
+    --badge-blue-border: rgba(59, 130, 246, 0.3);
+
+    --metric-speed: #60a5fa; 
+    --metric-avg: #c084fc;   
+    --metric-solved: #4ade80; 
+    --metric-streak: #fb923c; 
+
+    /* Difficulty Levels */
+    --diff-easy: #4ade80;
+    --diff-med: #facc15;
+    --diff-hard: #fb923c;
+    --diff-super: #f87171;
+
+    /* Functional UI */
+    --cursor: #007acc;
+    --error-light: rgba(244, 135, 113, 0.2);
+
+    --hero-gradient: linear-gradient(to bottom right, #ffffff, #93c5fd);
   }
+
+:root {
+  --hero-gradient: linear-gradient(to bottom right, #1e3a8a, #2563eb);
+}
 
 body {
   color: var(--foreground);
@@ -45,5 +97,11 @@ body {
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  .hero-gradient {
+    background-image: linear-gradient(to bottom right, var(--hero-from), var(--hero-to));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 }
