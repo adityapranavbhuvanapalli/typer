@@ -1,8 +1,9 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { updateProfile } from './actions'
 import { useSession } from 'next-auth/react'
+import { Pencil } from 'lucide-react'
 
 export default function EditProfileModal({ user }: { user: any }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -19,6 +20,19 @@ export default function EditProfileModal({ user }: { user: any }) {
     linkedin: user.linkedin || "",
     github: user.github || "",
   })
+
+  // Ensure form data is updated if user prop changes (e.g. after a successful update)
+  useEffect(() => {
+    setFormData({
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      username: user.username || "",
+      bio: user.bio || "",
+      website: user.website || "",
+      linkedin: user.linkedin || "",
+      github: user.github || "",
+    })
+  }, [user])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -55,8 +69,9 @@ export default function EditProfileModal({ user }: { user: any }) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="px-4 py-2 bg-[var(--panel-border)]/50 hover:bg-[var(--panel-border)] text-[var(--text-strong)] text-sm font-bold rounded-lg transition-all border border-[var(--panel-border)]"
+        className="px-4 py-2 bg-[var(--panel-border)]/50 hover:bg-[var(--panel-border)] text-[var(--text-strong)] text-sm font-bold rounded-lg transition-all border border-[var(--panel-border)] flex items-center gap-2"
       >
+        <Pencil className="w-4 h-4" />
         Edit Profile
       </button>
 
