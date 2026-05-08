@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { auth } from '@/auth'
-
 import prisma from '@/lib/db'
+import { getCachedDailyChallenge } from '@/lib/cache'
 
 export default async function ProblemsPage(props: { searchParams: Promise<{ page?: string }> }) {
   const params = await props.searchParams
@@ -12,10 +12,10 @@ export default async function ProblemsPage(props: { searchParams: Promise<{ page
   const session = await auth()
   
   // We want to fetch challenges, and potentially check if user has attempted them
-  const [challenges, totalCount, attempts] = await Promise.all([
+  const [dailyChallenge, challenges, totalCount, attempts] = await Promise.all([
+    getCachedDailyChallenge(),
     prisma.challenge.findMany({
       orderBy: [
-        { isDaily: 'desc' },
         { serialNo: 'asc' },
       ],
       skip,
@@ -31,6 +31,7 @@ export default async function ProblemsPage(props: { searchParams: Promise<{ page
   const totalPages = Math.ceil(totalCount / pageSize)
 
   const completedChallengeIds = new Set(attempts.map((a: any) => a.challengeId))
+  const displayChallenges = dailyChallenge ? [dailyChallenge, ...challenges] : challenges;
 
   const getDifficultyColor = (diff: string) => {
     switch(diff) {
@@ -86,11 +87,13 @@ export default async function ProblemsPage(props: { searchParams: Promise<{ page
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--panel-border)]/30">
-            {challenges.map((c: any) => {
+            {displayChallenges.map((c: any, index: number) => {
               const isCompleted = completedChallengeIds.has(c.id)
+              // If it's the first element AND dailyChallenge exists, it's our pinned daily
+              const isPinned = dailyChallenge && index === 0;
 
               return (
-                <tr key={c.id} className="hover:bg-[var(--panel-bg)] transition-colors group">
+                <tr key={`${c.id}-${isPinned ? 'pinned' : 'normal'}`} className={`hover:bg-[var(--panel-bg)] transition-colors group ${isPinned ? 'bg-[var(--primary)]/5' : ''}`}>
                   <td className="p-4 text-center">
                     {isCompleted && (
                       <span className="text-[var(--success)] font-bold" title="Completed">✓</span>

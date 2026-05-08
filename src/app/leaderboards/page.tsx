@@ -48,6 +48,7 @@ export default async function LeaderboardsPage(props: { searchParams: Promise<{ 
         longestStreakUsers={serialize(longestStreak)} 
         page={page}
         totalPages={totalPages}
+        pageSize={pageSize}
       />
     </div>
   )

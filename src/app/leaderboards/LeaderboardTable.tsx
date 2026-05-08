@@ -22,11 +22,12 @@ interface LeaderboardTableProps {
   longestStreakUsers: LeaderboardUser[]
   page: number
   totalPages: number
+  pageSize: number
 }
 
 type TabType = 'top_speed' | 'avg_speed' | 'solved' | 'streak'
 
-export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostCompletedUsers, longestStreakUsers, page, totalPages }: LeaderboardTableProps) {
+export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostCompletedUsers, longestStreakUsers, page, totalPages, pageSize }: LeaderboardTableProps) {
   const [activeTab, setActiveTab] = useState<TabType>('top_speed')
   
   const getActiveData = () => {
@@ -102,7 +103,7 @@ export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostComplet
               </tr>
             )}
             {activeData.map((user, i) => {
-              const rank = (page - 1) * 25 + i + 1;
+              const rank = (page - 1) * pageSize + i + 1;
               const isFirst = rank === 1;
               const isSecond = rank === 2;
               const isThird = rank === 3;
