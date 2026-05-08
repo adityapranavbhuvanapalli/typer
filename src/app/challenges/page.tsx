@@ -51,7 +51,7 @@ export default async function ProblemsPage(props: { searchParams: Promise<{ page
         </div>
         <div className="flex items-center gap-3">
           <div className="text-sm font-semibold text-[var(--text-muted)] bg-[var(--panel-bg)] px-4 py-2 rounded-full border border-[var(--panel-border)]">
-            Showing {skip + 1} - {Math.min(skip + pageSize, totalCount)} of {totalCount} problems
+            Showing {skip + 1} - {Math.min(skip + pageSize, totalCount)} of {totalCount} challenges
           </div>
           
           {totalPages > 1 && (
