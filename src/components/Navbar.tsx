@@ -1,27 +1,38 @@
 import Link from 'next/link'
-import { auth, signIn, signOut } from '@/auth'
+import { auth, signOut } from '@/auth'
 import { ThemeToggle } from './ThemeToggle'
 import { NavLinks } from './NavLinks'
-import { PrismaClient } from '@prisma/client'
+import { getEffectiveStreak } from '@/lib/streak'
 
-const prisma = new PrismaClient()
+import prisma from '@/lib/db'
+import { getCachedDailyChallenge } from '@/lib/cache'
 
 export async function Navbar() {
+  // Fire off independent cache query immediately
+  const dailyChallengePromise = getCachedDailyChallenge()
+  
   const session = await auth()
   
   let currentStreak = 0
-  if (session?.user?.id) {
-    const userDb = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { currentStreak: true }
+  let lastDailyDate: Date | null = null
+
+  if (session?.user) {
+    currentStreak = getEffectiveStreak({
+      currentStreak: session.user.currentStreak || 0,
+      lastDailyDate: session.user.lastDailyDate || null
     })
-    currentStreak = userDb?.currentStreak || 0
+    lastDailyDate = session.user.lastDailyDate || null
   }
+
+  // Calculate if the streak is "protected" (completed today)
+  const isProtected = lastDailyDate && 
+    new Date(lastDailyDate).toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
   
-  const dailyChallenge = await prisma.challenge.findFirst({
-    where: { isDaily: true },
-    select: { id: true }
-  })
+  // Highlight orange only if streak > 0 AND it's already protected today
+  const showOrange = currentStreak > 0 && !!isProtected;
+  
+  // Resolve the parallel daily challenge query
+  const dailyChallenge = await dailyChallengePromise
   const dailyUrl = dailyChallenge ? `/challenge/${dailyChallenge.id}` : "/challenges"
   
   return (
@@ -39,19 +50,19 @@ export async function Navbar() {
             <Link 
               href={dailyUrl}
               className={`flex items-center justify-center gap-1.5 px-3 py-1 shadow-inner border rounded-full font-bold transition-colors cursor-pointer ${
-                currentStreak > 0 
+                showOrange 
                   ? 'bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/30 text-orange-500' 
                   : 'bg-[var(--panel-border)]/30 hover:bg-[var(--panel-border)] border-[var(--panel-border)] text-[var(--text-muted)]'
               }`}
-              title="Play Daily Challenge"
+              title={showOrange ? "Streak Protected!" : "Complete today's challenge to protect your streak"}
             >
-              <span className={currentStreak === 0 ? 'opacity-30 grayscale' : ''}>🔥</span>
+              <span className={!showOrange ? 'opacity-30 grayscale' : ''}>🔥</span>
               <span>{currentStreak}</span>
             </Link>
             <div className="relative group pb-2 -mb-2">
               <div className="flex items-center space-x-2 hover:bg-[var(--panel-bg)] px-3 py-1.5 rounded-full transition-all cursor-pointer">
-                <img src={session.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.name}`} alt="avatar" className="w-8 h-8 rounded-full border border-blue-500" />
-                <span className="text-[var(--text-muted)] font-bold">{session.user.name} ▾</span>
+                <img src={session.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.firstName || 'Anonymous'}`} alt="avatar" className="w-8 h-8 rounded-full border border-blue-500" />
+                <span className="text-[var(--text-muted)] font-bold">{session.user.firstName || 'Anonymous'} ▾</span>
               </div>
               
               <div className="absolute right-0 top-full w-48 bg-[var(--panel-bg)] border border-[var(--panel-border)] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden translate-y-2 group-hover:translate-y-0">

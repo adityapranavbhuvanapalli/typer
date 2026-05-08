@@ -87,13 +87,23 @@ export default function ChallengeWorkspace({ challenge, isGuest }: { challenge: 
           <div className="pt-4 flex justify-center gap-4">
             <button 
               onClick={() => window.location.reload()}
-              className="px-6 py-3 rounded-lg bg-[var(--panel-bg)] hover:bg-[var(--panel-border)] text-[var(--text-strong)] font-bold border border-[var(--panel-border)] transition-colors"
+              disabled={isSaving}
+              className={`px-6 py-3 rounded-lg font-bold border transition-colors ${
+                isSaving 
+                  ? "bg-[var(--panel-bg)] text-[var(--text-muted)] border-[var(--panel-border)] cursor-not-allowed opacity-50" 
+                  : "bg-[var(--panel-bg)] hover:bg-[var(--panel-border)] text-[var(--text-strong)] border-[var(--panel-border)]"
+              }`}
             >
               Retry
             </button>
             <Link 
-              href="/challenges"
-              className="px-6 py-3 rounded-lg bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-[var(--text-strong)] font-bold shadow-lg transition-all"
+              href={isSaving ? "#" : "/challenges"}
+              onClick={(e) => isSaving && e.preventDefault()}
+              className={`px-6 py-3 rounded-lg font-bold shadow-lg transition-all ${
+                isSaving 
+                  ? "bg-[var(--primary)]/50 text-[var(--text-strong)]/50 cursor-not-allowed pointer-events-none" 
+                  : "bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-[var(--text-strong)]"
+              }`}
             >
               {isSaving ? "Saving..." : "Next Problem"}
             </Link>

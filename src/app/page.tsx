@@ -1,27 +1,20 @@
 import Link from 'next/link'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { getCachedDailyChallenge, getCachedTopUsers } from '@/lib/cache'
 
 export default async function Home() {
-  const dailyChallenge = await prisma.challenge.findFirst({
-    where: { isDaily: true }
-  })
-
-  const topUsers = await prisma.user.findMany({
-    where: { totalCompleted: { gt: 0 } },
-    orderBy: { topWpm: 'desc' },
-    take: 5
-  })
+  const [dailyChallenge, topUsers] = await Promise.all([
+    getCachedDailyChallenge(),
+    getCachedTopUsers()
+  ])
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col gap-16">
-      
+
       {/* Hero Section */}
       <section className="text-center space-y-6 pt-12">
-        <h1 
+        <h1
           className="text-6xl md:text-7xl font-black tracking-tight"
-          style={{ 
+          style={{
             background: 'var(--hero-gradient)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
@@ -59,11 +52,11 @@ export default async function Home() {
               </div>
               <h2 className="text-4xl font-bold text-[var(--text-strong)]">{dailyChallenge.title}</h2>
               <p className="text-[var(--text-muted)] max-w-lg">
-                Complete today's official challenge to maintain your streak and climb the global leaderboards.
+                Complete today&apos;s official challenge to maintain your streak and climb the global leaderboards.
               </p>
             </div>
-            
-            <Link 
+
+            <Link
               href={`/challenge/${dailyChallenge.id}`}
               className="group relative px-8 py-4 bg-white text-blue-900 font-black rounded-xl text-lg overflow-hidden shadow-xl hover:shadow-2xl transition-all"
             >
@@ -85,8 +78,8 @@ export default async function Home() {
               topUsers.map((user: any, idx: number) => (
                 <li key={user.id} className="flex justify-between items-center bg-[var(--panel-bg)] p-4 rounded-xl border border-[var(--panel-border)]">
                   <div className="flex items-center gap-4">
-                    <div className="text-xl font-black text-[var(--metric-speed)] opacity-70 w-6">#{idx + 1}</div>
-                    <div className="font-semibold text-[var(--text-muted)]">{user.name || 'Anonymous'}</div>
+                    <div className="text-xl font-black text-blue-400 opacity-70 w-6">#{idx + 1}</div>
+                    <div className="font-semibold text-[var(--text-muted)]">{user.firstName || 'Anonymous'}</div>
                   </div>
                   <div className="text-[var(--metric-speed)] font-mono font-bold">{Math.round(user.topWpm)} WPM</div>
                 </li>
@@ -97,16 +90,16 @@ export default async function Home() {
             View full leaderboards &rarr;
           </Link>
         </div>
-        
+
         <div className="p-8 rounded-2xl bg-[var(--panel-bg)] border border-[var(--panel-border)] shadow-lg flex flex-col justify-center">
-             <h3 className="text-3xl font-bold text-[var(--text-strong)] mb-4">Prove your speed.</h3>
-             <p className="text-[var(--text-muted)] text-lg mb-8">Four distinct tiers of difficulty. Track your percentile ranking, overall accuracy, and climb to the top.</p>
-             <div className="grid grid-cols-2 gap-4">
-               <div className="p-4 rounded-xl bg-[var(--diff-easy)]/10 border border-[var(--diff-easy)]/20 text-[var(--diff-easy)] font-bold text-center">EASY</div>
-               <div className="p-4 rounded-xl bg-[var(--diff-med)]/10 border border-[var(--diff-med)]/20 text-[var(--diff-med)] font-bold text-center">MEDIUM</div>
-               <div className="p-4 rounded-xl bg-[var(--diff-hard)]/10 border border-[var(--diff-hard)]/20 text-[var(--diff-hard)] font-bold text-center">HARD</div>
-               <div className="p-4 rounded-xl bg-[var(--diff-super)]/10 border border-[var(--diff-super)]/20 text-[var(--diff-super)] font-bold text-center">SUPER HARD</div>
-             </div>
+          <h3 className="text-3xl font-bold text-[var(--text-strong)] mb-4">Prove your speed.</h3>
+          <p className="text-[var(--text-muted)] text-lg mb-8">Four distinct tiers of difficulty. Track your percentile ranking, overall accuracy, and climb to the top.</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-[var(--diff-easy)]/10 border border-[var(--diff-easy)]/20 text-[var(--diff-easy)] font-bold text-center">EASY</div>
+            <div className="p-4 rounded-xl bg-[var(--diff-med)]/10 border border-[var(--diff-med)]/20 text-[var(--diff-med)] font-bold text-center">MEDIUM</div>
+            <div className="p-4 rounded-xl bg-[var(--diff-hard)]/10 border border-[var(--diff-hard)]/20 text-[var(--diff-hard)] font-bold text-center">HARD</div>
+            <div className="p-4 rounded-xl bg-[var(--diff-super)]/10 border border-[var(--diff-super)]/20 text-[var(--diff-super)] font-bold text-center">SUPER HARD</div>
+          </div>
         </div>
       </section>
 

@@ -1,6 +1,6 @@
 import NextAuth from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
-import { PrismaClient } from "@prisma/client"
+import prisma from "./lib/db"
 import Google from "next-auth/providers/google"
 import GitHub from "next-auth/providers/github"
 import Apple from "next-auth/providers/apple"
@@ -8,10 +8,27 @@ import Facebook from "next-auth/providers/facebook"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 
-const prisma = new PrismaClient()
-
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter: {
+    ...PrismaAdapter(prisma),
+    createUser: async (data: any) => {
+      let firstName = null
+      let lastName = null
+      if (data.name) {
+        const parts = data.name.trim().split(/\s+/)
+        if (parts.length > 1) {
+          lastName = parts.pop() || null
+          firstName = parts.join(' ')
+        } else {
+          firstName = data.name
+        }
+      }
+      const user = await prisma.user.create({
+        data: { ...data, firstName, lastName }
+      })
+      return user as any
+    }
+  },
   providers: [
     Google,
     GitHub,
@@ -31,7 +48,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const password = credentials.password as string
         const authEmail = rawUsername.includes('@') ? rawUsername : `${rawUsername.toLowerCase().replace(/\s/g, '')}@typer.local`
         
-        let user = await prisma.user.findUnique({ where: { email: authEmail } })
+        const user = await prisma.user.findUnique({ where: { email: authEmail } })
         
         if (!user) {
           // Explicitly throw so the frontend login panel can intercept and open the Registration Step
@@ -53,15 +70,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: '/login', // Intercept the default ugly page
   },
   callbacks: {
-    jwt({ token, user }) {
+    jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
+        token.firstName = user.firstName
+        token.lastName = user.lastName
+        token.currentStreak = user.currentStreak
+        token.lastDailyDate = user.lastDailyDate
       }
+      if (trigger === "update" && session?.firstName) {
+         token.firstName = session.firstName
+         token.lastName = session.lastName
+      }
+      // Optional: Add trigger="update" handling for streak later if needed
       return token
     },
     session({ session, token }) {
       if (token?.id) {
         session.user.id = token.id as string
+        session.user.firstName = token.firstName as string | null | undefined
+        session.user.lastName = token.lastName as string | null | undefined
+        session.user.currentStreak = token.currentStreak as number | undefined
+        session.user.lastDailyDate = token.lastDailyDate as Date | null | undefined
       }
       return session
     }

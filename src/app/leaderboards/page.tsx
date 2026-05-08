@@ -1,17 +1,16 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from '@/lib/db'
 import LeaderboardTable from './LeaderboardTable'
-
-const prisma = new PrismaClient()
+import { getCachedTopWpmUsers, getCachedMostCompletedUsers, getCachedLongestStreakUsers } from '@/lib/cache'
 
 // Next.js config to revalidate periodically or keep dynamic
 export const revalidate = 60 // regenerate page every 60 seconds
 
 export default async function LeaderboardsPage() {
   const [topWpm, avgWpm, mostCompleted, longestStreak] = await Promise.all([
-    prisma.user.findMany({ orderBy: { topWpm: 'desc' }, take: 25 }),
+    getCachedTopWpmUsers(25),
     prisma.user.findMany({ orderBy: { averageWpm: 'desc' }, take: 25 }),
-    prisma.user.findMany({ orderBy: { totalCompleted: 'desc' }, take: 25 }),
-    prisma.user.findMany({ orderBy: { longestStreak: 'desc' }, take: 25 })
+    getCachedMostCompletedUsers(25),
+    getCachedLongestStreakUsers(25)
   ])
 
   return (

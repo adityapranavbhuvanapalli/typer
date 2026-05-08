@@ -1,20 +1,20 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from '@/lib/db'
 import { notFound } from 'next/navigation'
 import UserGraphs from './UserGraphs'
 
-const prisma = new PrismaClient()
-
 export default async function ProfilePage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params
-  const user = await prisma.user.findUnique({
-    where: { id: params.id },
-    include: { attempts: true }
-  })
+  const [user, totalUsersWithCompleted] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: params.id },
+      include: { attempts: true }
+    }),
+    prisma.user.count({ where: { totalCompleted: { gt: 0 } } })
+  ])
 
   if (!user) notFound()
 
   // Percentiles (Fastest Query logic)
-  const totalUsersWithCompleted = await prisma.user.count({ where: { totalCompleted: { gt: 0 } } })
   const usersSlowerThanMe = await prisma.user.count({
     where: { totalCompleted: { gt: 0 }, topWpm: { lt: user.topWpm } }
   })
@@ -26,12 +26,12 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
       {/* Profile Header */}
       <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12">
         <img 
-          src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
+          src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName || 'Anonymous'}`} 
           className="w-32 h-32 rounded-full border-4 border-[var(--metric-speed)] shadow-lg" 
           alt="Avatar" 
         />
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-black text-[var(--text-strong)] mb-2">{user.name || 'Anonymous User'}</h1>
+          <h1 className="text-4xl font-black text-[var(--text-strong)] mb-2">{user.firstName || 'Anonymous User'}</h1>
           <p className="text-[var(--text-muted)]">Joined {new Date(user.createdAt).toLocaleDateString()}</p>
         </div>
         

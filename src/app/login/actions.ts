@@ -1,9 +1,7 @@
 "use server"
 
-import { PrismaClient } from "@prisma/client"
+import prisma from "@/lib/db"
 import bcrypt from "bcryptjs"
-
-const prisma = new PrismaClient()
 
 export async function checkUserExists(email: string) {
   const authEmail = email.includes('@') ? email : `${email.toLowerCase().replace(/\s/g, '')}@typer.local`
@@ -25,7 +23,8 @@ export async function registerUser(formData: FormData) {
     return { error: "This email is already registered." }
   }
 
-  const name = formData.get("name") as string
+  const firstName = formData.get("firstName") as string
+  const lastName = formData.get("lastName") as string
   const bio = formData.get("bio") as string
   const website = formData.get("website") as string
   const linkedin = formData.get("linkedin") as string
@@ -38,7 +37,9 @@ export async function registerUser(formData: FormData) {
       data: {
         email,
         password: hashedPassword,
-        name: name || email.split("@")[0], // Fallback to email prefix if skipped
+        name: (firstName ? firstName + (lastName ? ' ' + lastName : '') : email.split("@")[0]),
+        firstName: firstName || email.split("@")[0], // Fallback to email prefix if skipped
+        lastName: lastName || null,
         bio: bio || null,
         website: website || null,
         linkedin: linkedin || null,
