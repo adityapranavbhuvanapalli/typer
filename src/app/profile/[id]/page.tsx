@@ -108,8 +108,11 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
         </div>
       )}
 
+      {/* Main Analysis Component */}
+      <UserGraphs attempts={serializedAttempts} />
+
       {/* Recent Challenges Section */}
-      <div className="mb-12">
+      <div className="mt-12">
         <h2 className="text-2xl font-black text-[var(--text-strong)] mb-6 flex items-center gap-2">
           <span className="w-2 h-8 bg-[var(--primary)] rounded-full"></span>
           Recent Challenges
@@ -141,10 +144,6 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
           </div>
         )}
       </div>
-
-      {/* Main Analysis Component */}
-      <UserGraphs attempts={serializedAttempts} />
-
     </div>
   )
 }

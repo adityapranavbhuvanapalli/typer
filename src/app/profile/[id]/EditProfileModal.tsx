@@ -4,12 +4,14 @@ import React, { useState, useEffect } from 'react'
 import { updateProfile } from './actions'
 import { useSession } from 'next-auth/react'
 import { Pencil } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export default function EditProfileModal({ user }: { user: any }) {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const { update } = useSession()
+  const router = useRouter()
 
   const [formData, setFormData] = useState({
     firstName: user.firstName || "",
@@ -60,6 +62,8 @@ export default function EditProfileModal({ user }: { user: any }) {
         lastName: formData.lastName,
         username: formData.username
       })
+      
+      router.refresh()
       setIsOpen(false)
       setLoading(false)
     }
@@ -69,10 +73,10 @@ export default function EditProfileModal({ user }: { user: any }) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="px-4 py-2 bg-[var(--panel-border)]/50 hover:bg-[var(--panel-border)] text-[var(--text-strong)] text-sm font-bold rounded-lg transition-all border border-[var(--panel-border)] flex items-center gap-2"
+        className="p-2 bg-[var(--panel-border)]/50 hover:bg-[var(--panel-border)] text-[var(--text-strong)] rounded-lg transition-all border border-[var(--panel-border)] flex items-center justify-center"
+        title="Edit Profile"
       >
         <Pencil className="w-4 h-4" />
-        Edit Profile
       </button>
 
       {isOpen && (
