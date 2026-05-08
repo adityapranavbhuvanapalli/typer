@@ -13,6 +13,18 @@ export default async function LeaderboardsPage() {
     getCachedLongestStreakUsers(25)
   ])
 
+  // Serialize to avoid passing Date objects to Client Component
+  const serialize = (users: any[]) => users.map(u => ({
+    id: u.id,
+    firstName: u.firstName,
+    image: u.image,
+    topWpm: u.topWpm,
+    averageWpm: u.averageWpm,
+    totalCompleted: u.totalCompleted,
+    currentStreak: u.currentStreak,
+    longestStreak: u.longestStreak,
+  }))
+
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       <h1 className="text-5xl font-black text-[var(--text-strong)] mb-4 text-center">Global Leaderboards</h1>
@@ -22,10 +34,10 @@ export default async function LeaderboardsPage() {
 
       {/* Main Tabbed Leaderboard Component */}
       <LeaderboardTable 
-        topWpmUsers={topWpm}
-        avgWpmUsers={avgWpm} 
-        mostCompletedUsers={mostCompleted} 
-        longestStreakUsers={longestStreak} 
+        topWpmUsers={serialize(topWpm)}
+        avgWpmUsers={serialize(avgWpm)} 
+        mostCompletedUsers={serialize(mostCompleted)} 
+        longestStreakUsers={serialize(longestStreak)} 
       />
     </div>
   )
