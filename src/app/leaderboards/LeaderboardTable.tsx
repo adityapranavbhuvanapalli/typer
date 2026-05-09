@@ -70,7 +70,7 @@ export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostComplet
           onClick={() => setActiveTab('streak')}
           className={`whitespace-nowrap px-6 py-3 flex items-center gap-2 font-medium text-sm transition-all border-b-2 rounded-tl-lg rounded-tr-lg ${activeTab === 'streak' ? 'border-orange-500 text-[var(--metric-streak)] bg-orange-500/10' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-strong)] hover:bg-[var(--panel-border)]'}`}
         >
-          <CalendarDays size={16} /> Longest Streaks
+          <CalendarDays size={16} /> Longest Streak
         </button>
       </div>
 
