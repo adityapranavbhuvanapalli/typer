@@ -66,7 +66,7 @@ export async function submitAttempt(challengeId: string, stats: { wpm: number, a
     await prisma.user.update({
       where: { id: userId },
       data: {
-        totalCompleted: user.attempts.length,
+        totalCompleted: new Set(user.attempts.map(a => a.challengeId)).size,
         averageWpm,
         topWpm,
         currentStreak: newCurrentStreak,

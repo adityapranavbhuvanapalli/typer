@@ -70,7 +70,7 @@ export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostComplet
           onClick={() => setActiveTab('streak')}
           className={`whitespace-nowrap px-6 py-3 flex items-center gap-2 font-medium text-sm transition-all border-b-2 rounded-tl-lg rounded-tr-lg ${activeTab === 'streak' ? 'border-orange-500 text-[var(--metric-streak)] bg-orange-500/10' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-strong)] hover:bg-[var(--panel-border)]'}`}
         >
-          <CalendarDays size={16} /> Longest Streaks
+          <CalendarDays size={16} /> Longest Streak
         </button>
       </div>
 
@@ -123,8 +123,8 @@ export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostComplet
                 </td>
                 <td className="p-4">
                   <Link href={`/profile/${user.username}`} className="flex items-center gap-3 w-max">
-                    <img src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name || 'Anonymous'}`} className="w-8 h-8 rounded-full border border-gray-600 group-hover:border-blue-500 transition-colors" alt="" />
-                    <span className="font-semibold text-[var(--text-strong)] hover:underline decoration-blue-500 underline-offset-4">{user.name || 'Anonymous'}</span>
+                    <img src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username || 'Anonymous'}`} className="w-8 h-8 rounded-full border border-gray-600 group-hover:border-blue-500 transition-colors" alt="" />
+                    <span className="font-semibold text-[var(--text-strong)] hover:underline decoration-blue-500 underline-offset-4">{user.username || 'Anonymous'}</span>
                   </Link>
                 </td>
                 {activeTab === 'top_speed' && (
