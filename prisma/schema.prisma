@@ -54,6 +54,7 @@ model User {
   createdAt      DateTime  @default(now())
   firstName      String?
   lastName       String?
+  location       String?
   name           String?
   accounts       Account[]
   attempts       Attempt[]

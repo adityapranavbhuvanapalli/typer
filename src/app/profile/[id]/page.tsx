@@ -2,7 +2,7 @@ import prisma from '@/lib/db'
 import { notFound } from 'next/navigation'
 import UserGraphs from './UserGraphs'
 import { auth } from '@/auth'
-import EditProfileModal from './EditProfileModal'
+import { ProfileSidebar, StatsDashboard } from './ProfileComponents'
 
 export default async function ProfilePage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params
@@ -14,7 +14,7 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
       include: { 
         attempts: {
           orderBy: { completedAt: 'desc' },
-          take: 10,
+          take: 5,
           include: { challenge: true }
         } 
       }
@@ -24,22 +24,50 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
 
   if (!user) notFound()
 
-  const isOwnProfile = session?.user?.id === user.id
+  // Ranks (Fastest Query logic)
+  const [topWpmSlower, avgWpmSlower, totalUsers] = await Promise.all([
+    prisma.user.count({ where: { totalCompleted: { gt: 0 }, topWpm: { lt: user.topWpm } } }),
+    prisma.user.count({ where: { totalCompleted: { gt: 0 }, averageWpm: { lt: user.averageWpm } } }),
+    prisma.user.count({ where: { totalCompleted: { gt: 0 } } })
+  ])
 
-  // Percentiles (Fastest Query logic)
-  const usersSlowerThanMe = await prisma.user.count({
-    where: { totalCompleted: { gt: 0 }, topWpm: { lt: user.topWpm } }
+  const topWpmRank = totalUsers - topWpmSlower
+  const avgWpmRank = totalUsers - avgWpmSlower
+  const percentile = totalUsers === 0 ? 0 : ((totalUsers - topWpmRank + 1) / totalUsers) * 100
+
+  // Solved Breakdown Data
+  const solvedAttempts = await prisma.attempt.findMany({
+    where: { userId: params.id },
+    include: { challenge: true }
+  })
+  
+  const solvedByDifficulty: Record<string, number> = {}
+  const seenChallenges = new Set()
+  solvedAttempts.forEach(a => {
+    if (!seenChallenges.has(a.challengeId)) {
+      solvedByDifficulty[a.challenge.difficulty] = (solvedByDifficulty[a.challenge.difficulty] || 0) + 1
+      seenChallenges.add(a.challengeId)
+    }
   })
 
-  const percentile = totalUsersWithCompleted === 0 ? 0 : (usersSlowerThanMe / totalUsersWithCompleted) * 100
+  // Get total counts per difficulty from DB
+  const difficultyCounts = await prisma.challenge.groupBy({
+    by: ['difficulty'],
+    _count: true
+  })
+  const totalByDifficulty: Record<string, number> = {}
+  difficultyCounts.forEach(c => {
+    totalByDifficulty[c.difficulty] = c._count
+  })
 
-  // Serialize data for client components to avoid serialization issues
+  // Serialize data
   const serializedUser = {
     id: user.id,
     firstName: user.firstName,
     lastName: user.lastName,
     username: user.username,
     bio: user.bio,
+    location: user.location,
     website: user.website,
     linkedin: user.linkedin,
     github: user.github,
@@ -51,98 +79,93 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
     completedAt: a.completedAt.toISOString(),
   }))
 
+  const isOwnProfile = session?.user?.id === user.id
+
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
-      {/* Profile Header */}
-      <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12">
-        <img
-          src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username || 'Anonymous'}`}
-          className="w-32 h-32 rounded-full border-4 border-[var(--metric-speed)] shadow-lg"
-          alt="Avatar"
-        />
-        <div className="flex-1 text-center md:text-left">
-          <div className="flex flex-col md:flex-row md:items-center gap-4 mb-2">
-            <h1 className="text-4xl font-black text-[var(--text-strong)]">
-              {user.firstName || user.lastName ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Anonymous User'}
-            </h1>
-            {isOwnProfile && (
-              <EditProfileModal user={serializedUser} />
-            )}
+    <div className="min-h-screen bg-[var(--background)]">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Sidebar */}
+          <div className="lg:col-span-3 space-y-6">
+            <ProfileSidebar 
+              user={user} 
+              serializedUser={serializedUser} 
+              isOwnProfile={isOwnProfile} 
+              topRank={topWpmRank} 
+            />
           </div>
-          <p className="text-[var(--primary)] font-bold text-lg mb-2">@{user.username}</p>
-          <p className="text-[var(--text-muted)] text-sm">Joined {new Date(user.createdAt).toLocaleDateString()}</p>
-          {user.bio && <p className="mt-4 text-[var(--text-strong)] max-w-2xl">{user.bio}</p>}
-        </div>
 
-        {/* Highlight Stats */}
-        <div className="flex gap-4">
-          <div className="bg-[var(--panel-bg)] border border-[var(--metric-speed)]/30 p-4 rounded-xl text-center min-w-[120px]">
-            <p className="text-sm text-[var(--metric-speed)] font-bold mb-1">Top Speed</p>
-            <p className="text-3xl font-mono font-black text-[var(--text-strong)]">{Math.round(user.topWpm)}</p>
-          </div>
-          <div className="bg-[var(--panel-bg)] border border-[var(--metric-streak)]/30 p-4 rounded-xl text-center min-w-[120px]">
-            <p className="text-sm text-[var(--metric-streak)] font-bold mb-1">Max Streak</p>
-            <p className="text-3xl font-mono font-black text-[var(--text-strong)]">{user.longestStreak}</p>
-          </div>
-        </div>
-      </div>
+          {/* Main Content Area */}
+          <div className="lg:col-span-9 space-y-8">
+            <StatsDashboard 
+              user={user} 
+              percentile={percentile} 
+              totalUsers={totalUsers}
+              avgRank={avgWpmRank}
+              solvedByDifficulty={solvedByDifficulty}
+              totalByDifficulty={totalByDifficulty}
+            />
 
-      {/* Percentile Banner */}
-      {user.totalCompleted > 0 && (
-        <div className="w-full bg-gradient-to-r from-[var(--hero-from)] to-[var(--hero-to)] p-[1px] rounded-xl mb-12 shadow-xl border border-[var(--panel-border)]">
-          <div className="bg-[var(--panel-bg)] rounded-lg p-6 flex flex-col md:flex-row items-center justify-between">
-            <div>
-              <h3 className="text-2xl font-bold text-[var(--text-strong)] mb-2">Speed Percentile</h3>
-              <p className="text-[var(--text-muted)] text-sm">You type faster than <strong className="text-[var(--metric-speed)]">{percentile.toFixed(1)}%</strong> of all users.</p>
-            </div>
-            <div className="mt-4 md:mt-0 text-right">
-              <p className="text-xs text-[var(--text-muted)] mb-1">Global Standing based on Top WPM</p>
-              <div className="w-64 h-3 bg-[var(--panel-border)] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-[var(--hero-from)] to-[var(--hero-to)]"
-                  style={{ width: `${percentile}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+            {/* User Graphs (Progression & Activity) */}
+            <UserGraphs attempts={serializedAttempts} totalCompleted={user.totalCompleted} />
 
-      {/* Main Analysis Component */}
-      <UserGraphs attempts={serializedAttempts} />
-
-      {/* Recent Challenges Section */}
-      <div className="mt-12">
-        <h2 className="text-2xl font-black text-[var(--text-strong)] mb-6 flex items-center gap-2">
-          <span className="w-2 h-8 bg-[var(--primary)] rounded-full"></span>
-          Recent Challenges
-        </h2>
-        {user.attempts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {user.attempts.map((attempt) => (
-              <div key={attempt.id} className="bg-[var(--panel-bg)] border border-[var(--panel-border)] p-5 rounded-2xl flex items-center justify-between hover:border-[var(--primary)]/30 transition-all group">
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-[var(--text-strong)] truncate group-hover:text-[var(--primary)] transition-colors">{attempt.challenge.title}</p>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">{new Date(attempt.completedAt).toLocaleDateString()} at {new Date(attempt.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+            {/* Challenge History Section */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-black text-[var(--text-strong)] flex items-center gap-3">
+                <span className="w-2 h-6 bg-[var(--primary)] rounded-full"></span>
+                Challenge History
+              </h2>
+              {serializedAttempts.length > 0 ? (
+                <div className="space-y-3">
+                  {serializedAttempts.map((attempt: any) => (
+                    <div key={attempt.id} className="bg-[var(--panel-bg)] border border-[var(--panel-border)] p-4 px-6 rounded-2xl flex items-center justify-between hover:border-[var(--primary)]/30 transition-all group cursor-default">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-1">
+                          <p className="font-bold text-[var(--text-strong)] truncate group-hover:text-[var(--primary)] transition-colors">{attempt.challenge.title}</p>
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${
+                            attempt.challenge.difficulty === 'EASY' ? 'text-[var(--diff-easy)] border-[var(--diff-easy)]/30 bg-[var(--diff-easy)]/10' :
+                            attempt.challenge.difficulty === 'MEDIUM' ? 'text-[var(--diff-med)] border-[var(--diff-med)]/30 bg-[var(--diff-med)]/10' :
+                            attempt.challenge.difficulty === 'HARD' ? 'text-[var(--diff-hard)] border-[var(--diff-hard)]/30 bg-[var(--diff-hard)]/10' :
+                            'text-[var(--diff-super)] border-[var(--diff-super)]/30 bg-[var(--diff-super)]/10'
+                          }`}>
+                            {attempt.challenge.difficulty.replace('_', ' ')}
+                          </span>
+                        </div>
+                        <p className="text-xs text-[var(--text-muted)] font-medium">
+                          {(() => {
+                            const date = new Date(attempt.completedAt);
+                            const h = date.getUTCHours();
+                            const m = date.getUTCMinutes();
+                            const ampm = h >= 12 ? 'PM' : 'AM';
+                            const displayH = h % 12 || 12;
+                            const displayM = m < 10 ? `0${m}` : m;
+                            return `${date.getUTCDate().toString().padStart(2, '0')}/${(date.getUTCMonth() + 1).toString().padStart(2, '0')}/${date.getUTCFullYear()} ${displayH}:${displayM} ${ampm} UTC`;
+                          })()}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-8">
+                         <div className="text-right">
+                          <p className="text-[10px] text-[var(--metric-speed)] font-black uppercase tracking-tighter">Speed</p>
+                          <p className="text-lg font-mono font-black text-[var(--text-strong)]">{Math.round(attempt.wpm)} <span className="text-[10px] font-normal text-[var(--text-muted)]">WPM</span></p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-[var(--success)] font-black uppercase tracking-tighter">Accuracy</p>
+                          <p className="text-lg font-mono font-black text-[var(--text-strong)]">{Math.round(attempt.accuracy)}%</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-center gap-6 text-right">
-                  <div>
-                    <p className="text-xs text-[var(--metric-speed)] font-bold uppercase tracking-wider">Speed</p>
-                    <p className="text-xl font-mono font-black text-[var(--text-strong)]">{Math.round(attempt.wpm)} <span className="text-xs font-normal text-[var(--text-muted)]">WPM</span></p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-[var(--success)] font-bold uppercase tracking-wider">Accuracy</p>
-                    <p className="text-xl font-mono font-black text-[var(--text-strong)]">{Math.round(attempt.accuracy)}<span className="text-xs font-normal text-[var(--text-muted)]">%</span></p>
-                  </div>
+              ) : (
+                <div className="bg-[var(--panel-bg)] border border-[var(--panel-border)] border-dashed p-12 rounded-3xl text-center">
+                  <p className="text-[var(--text-muted)] font-medium">No challenges completed yet. Start typing to see your history!</p>
                 </div>
-              </div>
-            ))}
+              )}
+            </div>
           </div>
-        ) : (
-          <div className="bg-[var(--panel-bg)] border border-[var(--panel-border)] border-dashed p-12 rounded-3xl text-center">
-            <p className="text-[var(--text-muted)] font-medium">No challenges completed yet. Start typing to see your history!</p>
-          </div>
-        )}
+
+        </div>
       </div>
     </div>
   )

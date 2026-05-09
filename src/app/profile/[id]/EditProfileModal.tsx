@@ -10,6 +10,7 @@ export default function EditProfileModal({ user }: { user: any }) {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState(false)
   const { update } = useSession()
   const router = useRouter()
 
@@ -18,6 +19,7 @@ export default function EditProfileModal({ user }: { user: any }) {
     lastName: user.lastName || "",
     username: user.username || "",
     bio: user.bio || "",
+    location: user.location || "",
     website: user.website || "",
     linkedin: user.linkedin || "",
     github: user.github || "",
@@ -30,6 +32,7 @@ export default function EditProfileModal({ user }: { user: any }) {
       lastName: user.lastName || "",
       username: user.username || "",
       bio: user.bio || "",
+      location: user.location || "",
       website: user.website || "",
       linkedin: user.linkedin || "",
       github: user.github || "",
@@ -63,9 +66,9 @@ export default function EditProfileModal({ user }: { user: any }) {
         username: formData.username
       })
       
-      router.refresh()
-      setIsOpen(false)
       setLoading(false)
+      setIsOpen(false)
+      router.refresh()
     }
   }
 
@@ -101,6 +104,13 @@ export default function EditProfileModal({ user }: { user: any }) {
               {error && (
                 <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-500 text-sm font-bold">
                   {error}
+                </div>
+              )}
+
+              {success && (
+                <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-500 text-sm font-bold flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-ping" />
+                  Profile updated! Refreshing...
                 </div>
               )}
 
@@ -150,10 +160,24 @@ export default function EditProfileModal({ user }: { user: any }) {
                   name="bio"
                   value={formData.bio}
                   onChange={handleChange}
-                  rows={3}
-                  className="w-full bg-[var(--panel-border)]/20 border border-[var(--panel-border)] rounded-xl px-4 py-3 text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all resize-none"
+                  rows={2}
+                  className="w-full bg-[var(--panel-border)]/20 border border-[var(--panel-border)] rounded-xl px-4 py-3 text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all resize-none text-sm"
                   placeholder="Tell us about yourself..."
                 />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Location</label>
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    className="w-full bg-[var(--panel-border)]/20 border border-[var(--panel-border)] rounded-xl px-4 py-3 text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all text-sm"
+                    placeholder="e.g. New York, USA"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -175,6 +199,7 @@ export default function EditProfileModal({ user }: { user: any }) {
                     value={formData.linkedin}
                     onChange={handleChange}
                     className="w-full bg-[var(--panel-border)]/20 border border-[var(--panel-border)] rounded-xl px-4 py-3 text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all text-sm"
+                    placeholder="Username or URL"
                   />
                 </div>
               </div>
@@ -187,6 +212,7 @@ export default function EditProfileModal({ user }: { user: any }) {
                   value={formData.github}
                   onChange={handleChange}
                   className="w-full bg-[var(--panel-border)]/20 border border-[var(--panel-border)] rounded-xl px-4 py-3 text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all text-sm"
+                  placeholder="Username or URL"
                 />
               </div>
 

@@ -15,9 +15,18 @@ export async function updateProfile(userId: string, formData: FormData) {
   const lastName = formData.get("lastName") as string
   const username = formData.get("username") as string
   const bio = formData.get("bio") as string
-  const website = formData.get("website") as string
-  const linkedin = formData.get("linkedin") as string
-  const github = formData.get("github") as string
+  const location = formData.get("location") as string
+  let website = formData.get("website") as string
+  let linkedin = formData.get("linkedin") as string
+  let github = formData.get("github") as string
+
+  // Clean handles: extract username if full URL is provided
+  if (github) {
+    github = github.replace(/https?:\/\/(www\.)?github\.com\//, "").replace(/\/$/, "")
+  }
+  if (linkedin) {
+    linkedin = linkedin.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, "").replace(/\/$/, "")
+  }
 
   if (!firstName || !lastName || !username) {
     return { error: "First Name, Last Name, and Username are mandatory." }
@@ -43,6 +52,7 @@ export async function updateProfile(userId: string, formData: FormData) {
         lastName,
         username,
         bio: bio || null,
+        location: location || null,
         website: website || null,
         linkedin: linkedin || null,
         github: github || null,
