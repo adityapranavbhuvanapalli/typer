@@ -19,7 +19,7 @@ export default function UserGraphs({ attempts, totalCompleted }: { attempts: any
   }, [attempts])
 
   const activityGrid = useMemo(() => {
-    const grid = []
+    const grid: { date: string, count: number, dayOfWeek: number, month: number }[] = []
     const today = new Date()
     // Go back 365 days for the full year heatmap
     for (let i = 365; i >= 0; i--) {
@@ -34,7 +34,7 @@ export default function UserGraphs({ attempts, totalCompleted }: { attempts: any
 
   const monthLabels = useMemo(() => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    const labels = []
+    const labels: { index: number, label: string }[] = []
     let lastMonth = -1
     activityGrid.forEach((day, i) => {
       if (day.month !== lastMonth && i % 7 === 0) {
