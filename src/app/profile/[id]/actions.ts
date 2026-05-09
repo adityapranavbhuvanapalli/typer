@@ -60,6 +60,7 @@ export async function updateProfile(userId: string, formData: FormData) {
     })
 
     revalidatePath(`/profile/${userId}`)
+    revalidatePath(`/profile/${username}`)
     return { success: true }
   } catch (error) {
     console.error("Profile update failed:", error)

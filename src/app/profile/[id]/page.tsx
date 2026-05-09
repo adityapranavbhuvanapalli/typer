@@ -9,8 +9,13 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
   const session = await auth()
   
   const [user, totalUsersWithCompleted] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: params.id },
+    prisma.user.findFirst({
+      where: {
+        OR: [
+          { id: params.id },
+          { username: params.id }
+        ]
+      },
       include: { 
         attempts: {
           orderBy: { completedAt: 'desc' },
@@ -37,7 +42,7 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
 
   // Solved Breakdown Data
   const solvedAttempts = await prisma.attempt.findMany({
-    where: { userId: params.id },
+    where: { userId: user.id },
     include: { challenge: true }
   })
   
