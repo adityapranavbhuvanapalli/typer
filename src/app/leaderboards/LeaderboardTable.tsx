@@ -6,6 +6,7 @@ import { Zap, Activity, Flame, CalendarDays, Trophy } from 'lucide-react'
 // Define the User type we expect
 export interface LeaderboardUser {
   id: string
+  username: string
   name: string | null
   image: string | null
   topWpm: number
@@ -121,7 +122,7 @@ export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostComplet
                   </span>
                 </td>
                 <td className="p-4">
-                  <Link href={`/profile/${user.id}`} className="flex items-center gap-3 w-max">
+                  <Link href={`/profile/${user.username}`} className="flex items-center gap-3 w-max">
                     <img src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name || 'Anonymous'}`} className="w-8 h-8 rounded-full border border-gray-600 group-hover:border-blue-500 transition-colors" alt="" />
                     <span className="font-semibold text-[var(--text-strong)] hover:underline decoration-blue-500 underline-offset-4">{user.name || 'Anonymous'}</span>
                   </Link>

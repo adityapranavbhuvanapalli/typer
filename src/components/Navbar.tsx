@@ -66,7 +66,7 @@ export async function Navbar() {
               </div>
               
               <div className="absolute right-0 top-full w-48 bg-[var(--panel-bg)] border border-[var(--panel-border)] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden translate-y-2 group-hover:translate-y-0">
-                <Link href={`/profile/${session.user.id}`} className="block px-4 py-3 text-[var(--text-strong)] hover:bg-[var(--panel-border)]/50 border-b border-[var(--panel-border)] font-medium">
+                <Link href={`/profile/${session.user.username}`} className="block px-4 py-3 text-[var(--text-strong)] hover:bg-[var(--panel-border)]/50 border-b border-[var(--panel-border)] font-medium">
                   My Profile
                 </Link>
                 <form action={async () => { "use server"; await signOut() }}>

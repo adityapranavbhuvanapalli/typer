@@ -68,7 +68,8 @@ export default function EditProfileModal({ user }: { user: any }) {
       
       setLoading(false)
       setIsOpen(false)
-      router.refresh()
+      // Redirect to the potentially new username URL
+      router.push(`/profile/${formData.username}`)
     }
   }
 

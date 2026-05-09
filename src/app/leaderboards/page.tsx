@@ -24,6 +24,7 @@ export default async function LeaderboardsPage(props: { searchParams: Promise<{ 
   // Serialize to avoid passing Date objects to Client Component
   const serialize = (users: any[]) => users.map(u => ({
     id: u.id,
+    username: u.username,
     name: (u.firstName || u.lastName) ? `${u.firstName || ''} ${u.lastName || ''}`.trim() : null,
     image: u.image,
     topWpm: u.topWpm,

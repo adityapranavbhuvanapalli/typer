@@ -1,5 +1,5 @@
 import prisma from '@/lib/db'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import UserGraphs from './UserGraphs'
 import { auth } from '@/auth'
 import { ProfileSidebar, StatsDashboard } from './ProfileComponents'
@@ -28,6 +28,11 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
   ])
 
   if (!user) notFound()
+
+  // Canonical redirect: If accessed via ID but has a username, redirect to username URL
+  if (params.id === user.id && user.username) {
+    redirect(`/profile/${user.username}`)
+  }
 
   // Ranks (Fastest Query logic)
   const [topWpmSlower, avgWpmSlower, totalUsers] = await Promise.all([
