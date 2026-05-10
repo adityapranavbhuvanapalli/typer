@@ -45,7 +45,9 @@ export function ProfileSidebar({ user, serializedUser, isOwnProfile, topRank }: 
             <h1 className="text-3xl font-black text-[var(--text-strong)] tracking-tight flex items-center gap-2">
               {displayName}
               {isVerified && (
-                <CheckCircle2 className="w-6 h-6 text-blue-500 fill-blue-500/10" title="Verified Account" />
+                <span title="Verified Account">
+                  <CheckCircle2 className="w-6 h-6 text-blue-500 fill-blue-500/10" />
+                </span>
               )}
             </h1>
             {isOwnProfile && (
