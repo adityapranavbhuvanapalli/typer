@@ -15,13 +15,6 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
           { id: params.id },
           { username: params.id }
         ]
-      },
-      include: { 
-        attempts: {
-          orderBy: { completedAt: 'desc' },
-          take: 1000,
-          include: { challenge: true }
-        } 
       }
     }),
     prisma.user.count({ where: { totalCompleted: { gt: 0 } } })
@@ -29,48 +22,97 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
 
   if (!user) notFound()
 
-  // Canonical redirect: If accessed via ID but has a username, redirect to username URL
+  // Canonical redirect
   if (params.id === user.id && user.username) {
     redirect(`/profile/${user.username}`)
   }
 
-  // Ranks (Fastest Query logic)
-  const [topWpmSlower, avgWpmSlower, totalUsers] = await Promise.all([
+  // Fetch specialized data in parallel for performance
+  const oneYearAgo = new Date()
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
+
+  const [
+    topWpmSlower, 
+    avgWpmSlower, 
+    totalUsers,
+    activityDataRaw,
+    progressionDataRaw,
+    recentAttemptsRaw
+  ] = await Promise.all([
     prisma.user.count({ where: { totalCompleted: { gt: 0 }, topWpm: { lt: user.topWpm } } }),
     prisma.user.count({ where: { totalCompleted: { gt: 0 }, averageWpm: { lt: user.averageWpm } } }),
-    prisma.user.count({ where: { totalCompleted: { gt: 0 } } })
+    prisma.user.count({ where: { totalCompleted: { gt: 0 } } }),
+    // 1. Activity Data (Past Year ONLY - Lightweight)
+    prisma.attempt.findMany({
+      where: { userId: user.id, completedAt: { gte: oneYearAgo } },
+      select: { completedAt: true }
+    }),
+    // 2. Progression Data (Last 500 attempts for trend - Lightweight)
+    prisma.attempt.findMany({
+      where: { userId: user.id },
+      orderBy: { completedAt: 'desc' },
+      take: 500,
+      select: { wpm: true, accuracy: true, completedAt: true }
+    }),
+    // 3. Recent History (Last 10 - Full objects)
+    prisma.attempt.findMany({
+      where: { userId: user.id },
+      orderBy: { completedAt: 'desc' },
+      take: 10,
+      include: { challenge: true }
+    })
   ])
 
   const topWpmRank = totalUsers - topWpmSlower
   const avgWpmRank = totalUsers - avgWpmSlower
   const percentile = totalUsers === 0 ? 0 : ((totalUsers - topWpmRank + 1) / totalUsers) * 100
 
+  // Serialize datasets
+  const activityData = activityDataRaw.map(a => ({ completedAt: a.completedAt.toISOString() }))
+  const progressionData = progressionDataRaw.map(a => ({ 
+    wpm: a.wpm, 
+    accuracy: a.accuracy, 
+    completedAt: a.completedAt.toISOString() 
+  }))
+  const recentAttempts = recentAttemptsRaw.map(a => ({
+    ...a,
+    completedAt: a.completedAt.toISOString(),
+  }))
+
   // Solved Breakdown Data
-  const solvedAttempts = await prisma.attempt.findMany({
-    where: { userId: user.id },
-    include: { challenge: true }
-  })
-  
   const solvedByDifficulty: Record<string, number> = {}
   const seenChallenges = new Set()
-  solvedAttempts.forEach(a => {
-    if (!seenChallenges.has(a.challengeId)) {
-      solvedByDifficulty[a.challenge.difficulty] = (solvedByDifficulty[a.challenge.difficulty] || 0) + 1
-      seenChallenges.add(a.challengeId)
-    }
+  
+  // We use recentAttempts + activityData for breakdown to avoid another heavy query
+  // Actually, let's just fetch the counts by difficulty directly for accuracy
+  const [difficultyCounts, userSolvedCounts] = await Promise.all([
+    prisma.challenge.groupBy({
+      by: ['difficulty'],
+      _count: true
+    }),
+    prisma.attempt.groupBy({
+      by: ['challengeId'],
+      where: { userId: user.id },
+      _count: true
+    })
+  ])
+
+  // Get difficulty mapping for solved challenges
+  const solvedChallenges = await prisma.challenge.findMany({
+    where: { id: { in: userSolvedCounts.map(c => c.challengeId) } },
+    select: { id: true, difficulty: true }
   })
 
-  // Get total counts per difficulty from DB
-  const difficultyCounts = await prisma.challenge.groupBy({
-    by: ['difficulty'],
-    _count: true
+  solvedChallenges.forEach(c => {
+    solvedByDifficulty[c.difficulty] = (solvedByDifficulty[c.difficulty] || 0) + 1
   })
+
   const totalByDifficulty: Record<string, number> = {}
   difficultyCounts.forEach(c => {
     totalByDifficulty[c.difficulty] = c._count
   })
 
-  // Serialize data
+  // Serialize user
   const serializedUser = {
     id: user.id,
     firstName: user.firstName,
@@ -84,11 +126,6 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
     github: user.github,
     image: user.image
   }
-
-  const serializedAttempts = user.attempts.map(a => ({
-    ...a,
-    completedAt: a.completedAt.toISOString(),
-  }))
 
   const isOwnProfile = session?.user?.id === user.id
 
@@ -119,7 +156,11 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
             />
 
             {/* User Graphs (Progression & Activity) */}
-            <UserGraphs attempts={serializedAttempts} totalCompleted={user.totalCompleted} />
+            <UserGraphs 
+              activityData={activityData} 
+              progressionData={progressionData} 
+              totalCompleted={user.totalCompleted} 
+            />
 
             {/* Challenge History Section */}
             <div className="space-y-6">
@@ -127,9 +168,9 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
                 <span className="w-2 h-6 bg-[var(--primary)] rounded-full"></span>
                 Challenge History
               </h2>
-              {serializedAttempts.length > 0 ? (
+              {recentAttempts.length > 0 ? (
                 <div className="space-y-3">
-                  {serializedAttempts.slice(0, 10).map((attempt: any) => (
+                  {recentAttempts.map((attempt: any) => (
                     <div key={attempt.id} className="bg-[var(--panel-bg)] border border-[var(--panel-border)] p-4 px-6 rounded-2xl flex items-center justify-between hover:border-[var(--primary)]/30 transition-all group cursor-default">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-1">

@@ -2,21 +2,29 @@
 import React, { useMemo } from 'react'
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, YAxis } from 'recharts'
 
-export default function UserGraphs({ attempts, totalCompleted }: { attempts: any[], totalCompleted: number }) {
-  // Sort attempts chronologically
-  const sortedAttempts = useMemo(() => {
-    return [...attempts].sort((a, b) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime())
-  }, [attempts])
+export default function UserGraphs({ 
+  activityData, 
+  progressionData, 
+  totalCompleted 
+}: { 
+  activityData: { completedAt: string }[], 
+  progressionData: { wpm: number, accuracy: number, completedAt: string }[],
+  totalCompleted: number 
+}) {
+  // Sort progression chronologically for the line chart
+  const sortedProgression = useMemo(() => {
+    return [...progressionData].sort((a, b) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime())
+  }, [progressionData])
 
   // Build GitHub style contribution data (past 365 days)
   const activityMap = useMemo(() => {
     const map = new Map<string, number>()
-    attempts.forEach(a => {
+    activityData.forEach(a => {
       const day = new Date(a.completedAt).toISOString().split('T')[0]
       map.set(day, (map.get(day) || 0) + 1)
     })
     return map
-  }, [attempts])
+  }, [activityData])
 
   const activityGrid = useMemo(() => {
     const grid: { date: string, count: number, dayOfWeek: number, month: number }[] = []
@@ -47,13 +55,13 @@ export default function UserGraphs({ attempts, totalCompleted }: { attempts: any
 
   // Format Recharts data
   const chartData = useMemo(() => {
-    return sortedAttempts.map((a, i) => ({
+    return sortedProgression.map((a, i) => ({
       index: i + 1,
       wpm: a.wpm,
       accuracy: a.accuracy,
       date: new Date(a.completedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
     }))
-  }, [sortedAttempts])
+  }, [sortedProgression])
 
   const getTileColor = (count: number) => {
     if (count === 0) return 'bg-gray-800/30 border-gray-700/30'
