@@ -159,3 +159,55 @@ export async function resendVerificationEmail(email: string) {
     return { error: "Failed to resend email." }
   }
 }
+
+export async function updatePassword(formData: FormData) {
+  const { auth } = await import("@/auth")
+  const session = await auth()
+  
+  if (!session?.user?.id) {
+    return { error: "Unauthorized. Please log in again." }
+  }
+
+  const currentPassword = formData.get("currentPassword") as string
+  const newPassword = formData.get("newPassword") as string
+  const confirmPassword = formData.get("confirmPassword") as string
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return { error: "All password fields are required." }
+  }
+
+  if (newPassword !== confirmPassword) {
+    return { error: "New passwords do not match." }
+  }
+
+  if (newPassword.length < 8) {
+    return { error: "New password must be at least 8 characters long." }
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { password: true }
+    })
+
+    if (!user || !user.password) {
+      return { error: "This account was created via social login and does not have a password. Please use your social provider to sign in." }
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password)
+    if (!isMatch) {
+      return { error: "Current password is incorrect." }
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10)
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { password: hashedNewPassword }
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error("Password update error:", error)
+    return { error: "A server error occurred. Please try again." }
+  }
+}
