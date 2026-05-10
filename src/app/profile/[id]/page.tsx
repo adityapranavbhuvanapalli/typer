@@ -76,6 +76,7 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
     firstName: user.firstName,
     lastName: user.lastName,
     username: user.username,
+    email: user.email,
     bio: user.bio,
     location: user.location,
     website: user.website,
