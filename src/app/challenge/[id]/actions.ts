@@ -71,7 +71,8 @@ export async function submitAttempt(challengeId: string, stats: { wpm: number, a
         topWpm,
         currentStreak: newCurrentStreak,
         longestStreak: newLongestStreak,
-        lastDailyDate: newLastDailyDate
+        lastDailyDate: newLastDailyDate,
+        lastActive: new Date()
       }
     })
 

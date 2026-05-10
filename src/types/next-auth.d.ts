@@ -9,6 +9,7 @@ declare module "next-auth" {
       username?: string | null
       currentStreak?: number
       lastDailyDate?: Date | null
+      emailVerified?: Date | null
     } & DefaultSession["user"]
   }
 
@@ -18,5 +19,6 @@ declare module "next-auth" {
     username?: string | null
     currentStreak?: number
     lastDailyDate?: Date | null
+    emailVerified?: Date | null
   }
 }
