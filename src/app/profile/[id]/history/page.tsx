@@ -4,8 +4,12 @@ import { auth } from '@/auth'
 import Link from 'next/link'
 import { ArrowLeft, Clock, Zap, Target } from 'lucide-react'
 
-export default async function FullHistoryPage(props: { params: Promise<{ id: string }> }) {
+export default async function FullHistoryPage(props: { 
+  params: Promise<{ id: string }>,
+  searchParams: Promise<{ page?: string }> 
+}) {
   const params = await props.params
+  const searchParams = await props.searchParams
   const session = await auth()
   
   const user = await prisma.user.findFirst({
@@ -24,13 +28,25 @@ export default async function FullHistoryPage(props: { params: Promise<{ id: str
     redirect(`/profile/${user.username}/history`)
   }
 
-  // Fetch all history (limited to 500 for safety, but with challenge details)
-  const allAttempts = await prisma.attempt.findMany({
-    where: { userId: user.id },
-    orderBy: { completedAt: 'desc' },
-    take: 500,
-    include: { challenge: true }
-  })
+  // Pagination Logic
+  const pageSize = 20
+  const currentPage = Number(searchParams.page) || 1
+  const skip = (currentPage - 1) * pageSize
+
+  const [allAttempts, totalAttempts] = await Promise.all([
+    prisma.attempt.findMany({
+      where: { userId: user.id },
+      orderBy: { completedAt: 'desc' },
+      skip,
+      take: pageSize,
+      include: { challenge: true }
+    }),
+    prisma.attempt.count({ where: { userId: user.id } })
+  ])
+
+  const totalPages = Math.ceil(totalAttempts / pageSize)
+  const hasNextPage = currentPage < totalPages
+  const hasPrevPage = currentPage > 1
 
   return (
     <div className="min-h-screen bg-[var(--background)] py-12">
@@ -130,10 +146,37 @@ export default async function FullHistoryPage(props: { params: Promise<{ id: str
           )}
         </div>
 
-        {/* Footer info */}
-        {allAttempts.length >= 500 && (
-          <div className="mt-8 text-center text-[var(--text-muted)] text-sm font-medium">
-            Showing the 500 most recent submissions.
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="mt-12 flex items-center justify-between bg-[var(--panel-bg)] border border-[var(--panel-border)] p-4 rounded-3xl shadow-xl">
+            <Link
+              href={hasPrevPage ? `?page=${currentPage - 1}` : '#'}
+              className={`px-6 py-3 rounded-2xl font-black text-sm transition-all flex items-center gap-2 ${
+                hasPrevPage 
+                  ? 'bg-[var(--panel-border)]/50 hover:bg-[var(--panel-border)] text-[var(--text-strong)]' 
+                  : 'text-[var(--text-muted)] cursor-not-allowed opacity-50'
+              }`}
+            >
+              ← Previous
+            </Link>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Page</span>
+              <span className="px-4 py-2 bg-[var(--primary)]/10 text-[var(--primary)] rounded-xl font-mono font-black border border-[var(--primary)]/20">
+                {currentPage} <span className="text-[var(--text-muted)] font-normal text-[10px]">of {totalPages}</span>
+              </span>
+            </div>
+
+            <Link
+              href={hasNextPage ? `?page=${currentPage + 1}` : '#'}
+              className={`px-6 py-3 rounded-2xl font-black text-sm transition-all flex items-center gap-2 ${
+                hasNextPage 
+                  ? 'bg-[var(--panel-border)]/50 hover:bg-[var(--panel-border)] text-[var(--text-strong)]' 
+                  : 'text-[var(--text-muted)] cursor-not-allowed opacity-50'
+              }`}
+            >
+              Next →
+            </Link>
           </div>
         )}
       </div>
