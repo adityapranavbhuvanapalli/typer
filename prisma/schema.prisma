@@ -83,13 +83,16 @@ model Challenge {
 }
 
 model Attempt {
-  id          String    @id @default(cuid())
-  userId      String
-  challengeId String
-  wpm         Float
-  accuracy    Float
-  timeSeconds Float
-  completedAt DateTime  @default(now())
-  challenge   Challenge @relation(fields: [challengeId], references: [id])
-  user        User      @relation(fields: [userId], references: [id])
+  id           String    @id @default(cuid())
+  userId       String
+  challengeId  String
+  wpm          Float
+  accuracy     Float
+  trueAccuracy Float?
+  rawWpm       Float?
+  timeSeconds  Float
+  rawLog       Json?
+  completedAt  DateTime  @default(now())
+  challenge    Challenge @relation(fields: [challengeId], references: [id])
+  user         User      @relation(fields: [userId], references: [id])
 }

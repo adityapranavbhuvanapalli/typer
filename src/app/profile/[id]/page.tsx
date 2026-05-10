@@ -4,6 +4,7 @@ import Link from 'next/link'
 import UserGraphs from './UserGraphs'
 import { auth } from '@/auth'
 import { ProfileSidebar, StatsDashboard } from './ProfileComponents'
+import AttemptHistoryList from '@/components/AttemptHistoryList'
 
 export default async function ProfilePage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params
@@ -68,24 +69,31 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
   const avgWpmRank = totalUsers - avgWpmSlower
   const percentile = totalUsers === 0 ? 0 : ((totalUsers - topWpmRank + 1) / totalUsers) * 100
 
-  // Serialize datasets
+  // Serialize datasets with percentile enrichment
   const activityData = activityDataRaw.map(a => ({ completedAt: a.completedAt.toISOString() }))
   const progressionData = progressionDataRaw.map(a => ({ 
     wpm: a.wpm, 
     accuracy: a.accuracy, 
     completedAt: a.completedAt.toISOString() 
   }))
-  const recentAttempts = recentAttemptsRaw.map(a => ({
-    ...a,
-    completedAt: a.completedAt.toISOString(),
+  
+  const recentAttempts = await Promise.all(recentAttemptsRaw.map(async (a) => {
+    const [betterThan, total] = await Promise.all([
+      prisma.attempt.count({ where: { challengeId: a.challengeId, wpm: { lt: a.wpm } } }),
+      prisma.attempt.count({ where: { challengeId: a.challengeId } })
+    ])
+    const percentile = total > 0 ? (betterThan / total) * 100 : 100
+    
+    return {
+      ...a,
+      completedAt: a.completedAt.toISOString(),
+      percentile
+    }
   }))
 
   // Solved Breakdown Data
   const solvedByDifficulty: Record<string, number> = {}
-  const seenChallenges = new Set()
   
-  // We use recentAttempts + activityData for breakdown to avoid another heavy query
-  // Actually, let's just fetch the counts by difficulty directly for accuracy
   const [difficultyCounts, userSolvedCounts] = await Promise.all([
     prisma.challenge.groupBy({
       by: ['difficulty'],
@@ -98,7 +106,6 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
     })
   ])
 
-  // Get difficulty mapping for solved challenges
   const solvedChallenges = await prisma.challenge.findMany({
     where: { id: { in: userSolvedCounts.map(c => c.challengeId) } },
     select: { id: true, difficulty: true }
@@ -113,7 +120,6 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
     totalByDifficulty[c.difficulty] = c._count
   })
 
-  // Serialize user
   const serializedUser = {
     id: user.id,
     firstName: user.firstName,
@@ -169,47 +175,9 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
                 <span className="w-2 h-6 bg-[var(--primary)] rounded-full"></span>
                 Challenge History
               </h2>
+              
               {recentAttempts.length > 0 ? (
-                <div className="space-y-3">
-                  {recentAttempts.map((attempt: any) => (
-                    <div key={attempt.id} className="bg-[var(--panel-bg)] border border-[var(--panel-border)] p-4 px-6 rounded-2xl flex items-center justify-between hover:border-[var(--primary)]/30 transition-all group cursor-default">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-1">
-                          <p className="font-bold text-[var(--text-strong)] truncate group-hover:text-[var(--primary)] transition-colors">{attempt.challenge.title}</p>
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${
-                            attempt.challenge.difficulty === 'EASY' ? 'text-[var(--diff-easy)] border-[var(--diff-easy)]/30 bg-[var(--diff-easy)]/10' :
-                            attempt.challenge.difficulty === 'MEDIUM' ? 'text-[var(--diff-med)] border-[var(--diff-med)]/30 bg-[var(--diff-med)]/10' :
-                            attempt.challenge.difficulty === 'HARD' ? 'text-[var(--diff-hard)] border-[var(--diff-hard)]/30 bg-[var(--diff-hard)]/10' :
-                            'text-[var(--diff-super)] border-[var(--diff-super)]/30 bg-[var(--diff-super)]/10'
-                          }`}>
-                            {attempt.challenge.difficulty.replace('_', ' ')}
-                          </span>
-                        </div>
-                        <p className="text-xs text-[var(--text-muted)] font-medium">
-                          {(() => {
-                            const date = new Date(attempt.completedAt);
-                            const h = date.getUTCHours();
-                            const m = date.getUTCMinutes();
-                            const ampm = h >= 12 ? 'PM' : 'AM';
-                            const displayH = h % 12 || 12;
-                            const displayM = m < 10 ? `0${m}` : m;
-                            return `${date.getUTCDate().toString().padStart(2, '0')}/${(date.getUTCMonth() + 1).toString().padStart(2, '0')}/${date.getUTCFullYear()} ${displayH}:${displayM} ${ampm} UTC`;
-                          })()}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-8">
-                         <div className="text-right">
-                          <p className="text-[10px] text-[var(--metric-speed)] font-black uppercase tracking-tighter">Speed</p>
-                          <p className="text-lg font-mono font-black text-[var(--text-strong)]">{Math.round(attempt.wpm)} <span className="text-[10px] font-normal text-[var(--text-muted)]">WPM</span></p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-[10px] text-[var(--success)] font-black uppercase tracking-tighter">Accuracy</p>
-                          <p className="text-lg font-mono font-black text-[var(--text-strong)]">{Math.round(attempt.accuracy)}%</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <AttemptHistoryList attempts={recentAttempts} />
               ) : (
                 <div className="bg-[var(--panel-bg)] border border-[var(--panel-border)] border-dashed p-12 rounded-3xl text-center">
                   <p className="text-[var(--text-muted)] font-medium">No challenges completed yet. Start typing to see your history!</p>

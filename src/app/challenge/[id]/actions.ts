@@ -5,7 +5,16 @@ import { auth } from '@/auth'
 import { revalidatePath } from 'next/cache'
 import { getEffectiveStreak } from '@/lib/streak'
 
-export async function submitAttempt(challengeId: string, stats: { wpm: number, accuracy: number, timeSeconds: number, errors: number }) {
+export async function submitAttempt(
+  challengeId: string, 
+  stats: { 
+    wpm: number, 
+    timeSeconds: number, 
+    errors: number,
+    rawLog: any[],
+    trueAccuracy: number
+  }
+) {
   try {
     const session = await auth()
     if (!session?.user?.id) {
@@ -14,16 +23,30 @@ export async function submitAttempt(challengeId: string, stats: { wpm: number, a
 
     const userId = session.user.id
 
-    // Record the attempt
+    // Record the attempt with high-fidelity analytics
     await prisma.attempt.create({
       data: {
         userId,
         challengeId,
         wpm: stats.wpm,
-        accuracy: stats.accuracy,
+        accuracy: stats.trueAccuracy, // Required legacy field
+        trueAccuracy: stats.trueAccuracy,
         timeSeconds: stats.timeSeconds,
+        rawLog: stats.rawLog as any
       }
     })
+
+    // Calculate Percentile for THIS challenge
+    const [betterThan, totalAttempts] = await Promise.all([
+      prisma.attempt.count({
+        where: { challengeId, wpm: { lt: stats.wpm } }
+      }),
+      prisma.attempt.count({
+        where: { challengeId }
+      })
+    ])
+
+    const percentile = totalAttempts > 0 ? (betterThan / totalAttempts) * 100 : 100
 
     // Update user aggregates (total Completed, average WPM, top WPM)
     const user = await prisma.user.findUnique({ where: { id: userId }, include: { attempts: true } })
@@ -77,11 +100,13 @@ export async function submitAttempt(challengeId: string, stats: { wpm: number, a
     })
 
     // Aggressively flush the Next.js router cache to ensure Leaders and Streaks instantly reflect the new data!
-    revalidatePath('/', 'layout')
+    revalidatePath('/leaderboards')
+    revalidatePath(`/profile/${userId}`)
+    revalidatePath('/challenges')
 
-    return { success: true }
-  } catch (e: any) {
-    console.error("Action Error:", e)
-    return { error: e.message || 'Unknown server error' }
+    return { success: true, percentile }
+  } catch (error) {
+    console.error('Submission Error:', error)
+    return { error: 'Failed to save progress. Server error.' }
   }
 }
