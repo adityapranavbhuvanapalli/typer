@@ -57,6 +57,7 @@ model User {
   lastName       String?
   location       String?
   name           String?
+  rating         Float     @default(0.0)
   accounts       Account[]
   attempts       Attempt[]
   sessions       Session[]
@@ -77,9 +78,10 @@ model Challenge {
   difficulty String
   content    String
   isDaily    Boolean   @default(false)
-  dailyDate  DateTime? @unique
-  createdAt  DateTime  @default(now())
-  attempts   Attempt[]
+  dailyDate             DateTime? @unique
+  difficultyCoefficient Float     @default(1.0)
+  createdAt             DateTime  @default(now())
+  attempts              Attempt[]
 }
 
 model Attempt {
@@ -92,6 +94,7 @@ model Attempt {
   rawWpm       Float?
   timeSeconds  Float
   rawLog       Json?
+  ratingChange Float?
   completedAt  DateTime  @default(now())
   challenge    Challenge @relation(fields: [challengeId], references: [id])
   user         User      @relation(fields: [userId], references: [id])

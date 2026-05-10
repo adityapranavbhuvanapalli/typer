@@ -16,7 +16,9 @@ export default function ChallengeWorkspace({ challenge, isGuest }: { challenge: 
     errors: number,
     rawLog: any[],
     trueAccuracy: number,
-    percentile?: number
+    percentile?: number,
+    ratingChange?: number,
+    newRating?: number
   } | null>(null)
 
   const handleComplete = async (finalStats: any) => {
@@ -30,10 +32,13 @@ export default function ChallengeWorkspace({ challenge, isGuest }: { challenge: 
       
       if (res.error) {
         alert("CRITICAL ERROR: " + res.error)
-      } else if (res.percentile !== undefined) {
-        setStats(prev => prev ? { ...prev, percentile: res.percentile } : null)
-        router.refresh()
       } else {
+        setStats(prev => prev ? { 
+          ...prev, 
+          percentile: res.percentile,
+          ratingChange: res.ratingChange,
+          newRating: res.newRating
+        } : null)
         router.refresh()
       }
     }
@@ -78,24 +83,37 @@ export default function ChallengeWorkspace({ challenge, isGuest }: { challenge: 
             <p className="text-[var(--text-muted)] font-medium">Detailed performance breakdown</p>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="p-6 bg-[var(--panel-bg)] rounded-2xl border border-[var(--panel-border)] shadow-sm hover:border-[var(--primary)]/30 transition-all">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="p-4 bg-[var(--panel-bg)] rounded-2xl border border-[var(--panel-border)] shadow-sm hover:border-[var(--primary)]/30 transition-all">
               <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mb-2">Net Speed</p>
-              <p className="text-4xl font-black text-[var(--metric-speed)] font-mono">{Math.round(stats!.wpm)} <span className="text-xs font-normal">WPM</span></p>
+              <p className="text-3xl font-black text-[var(--metric-speed)] font-mono">{Math.round(stats!.wpm)} <span className="text-xs font-normal">WPM</span></p>
             </div>
-            <div className="p-6 bg-[var(--panel-bg)] rounded-2xl border border-[var(--panel-border)] shadow-sm hover:border-[var(--primary)]/30 transition-all">
+            <div className="p-4 bg-[var(--panel-bg)] rounded-2xl border border-[var(--panel-border)] shadow-sm hover:border-[var(--primary)]/30 transition-all">
               <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mb-2">True Accuracy</p>
-              <p className="text-4xl font-black text-[var(--primary)] font-mono">{stats!.trueAccuracy.toFixed(1)}%</p>
+              <p className="text-3xl font-black text-[var(--primary)] font-mono">{stats!.trueAccuracy.toFixed(1)}%</p>
             </div>
-            <div className="p-6 bg-[var(--panel-bg)] rounded-2xl border border-[var(--panel-border)] shadow-sm hover:border-[var(--primary)]/30 transition-all">
-              <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mb-2">Time Elapsed</p>
-              <p className="text-4xl font-black text-[var(--text-strong)] font-mono">{stats!.timeSeconds.toFixed(1)}s</p>
+            <div className="p-4 bg-[var(--panel-bg)] rounded-2xl border border-[var(--panel-border)] shadow-sm hover:border-[var(--primary)]/30 transition-all">
+              <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mb-2">Time</p>
+              <p className="text-3xl font-black text-[var(--text-strong)] font-mono">{stats!.timeSeconds.toFixed(1)}s</p>
             </div>
-            <div className="p-6 bg-[var(--panel-bg)] rounded-2xl border border-[var(--primary)]/20 shadow-sm hover:border-[var(--primary)] transition-all">
+            <div className="p-4 bg-[var(--panel-bg)] rounded-2xl border border-[var(--panel-border)] shadow-sm hover:border-[var(--primary)]/30 transition-all">
               <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mb-2">Percentile</p>
-              <p className="text-4xl font-black text-[var(--primary)] font-mono">
+              <p className="text-3xl font-black text-[var(--text-strong)] font-mono">
                 {stats!.percentile !== undefined ? stats!.percentile.toFixed(1) : '...'}
               </p>
+            </div>
+            <div className="p-4 bg-[var(--panel-bg)] rounded-2xl border border-[var(--primary)]/20 shadow-lg hover:border-[var(--primary)] transition-all flex flex-col justify-center">
+              <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mb-1">Rating</p>
+              <div className="flex items-baseline gap-2 justify-center">
+                <p className="text-3xl font-black text-[var(--primary)] font-mono">
+                  {stats!.newRating !== undefined ? Math.round(stats!.newRating) : '...'}
+                </p>
+                {stats!.ratingChange !== undefined && (
+                  <span className={`text-xs font-bold ${stats!.ratingChange >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                    {stats!.ratingChange >= 0 ? '+' : ''}{stats!.ratingChange.toFixed(1)}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 

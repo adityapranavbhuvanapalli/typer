@@ -3,6 +3,7 @@
 import prisma from '@/lib/db'
 import { auth } from '@/auth'
 import { revalidatePath } from 'next/cache'
+import { updateChallengeDifficulty, calculateSingleAttemptPower, calculateUserRating } from '@/lib/rating'
 import { getEffectiveStreak } from '@/lib/streak'
 
 export async function submitAttempt(
@@ -23,8 +24,18 @@ export async function submitAttempt(
 
     const userId = session.user.id
 
-    // Record the attempt with high-fidelity analytics
-    await prisma.attempt.create({
+    // 1. Fetch current challenge and user stats
+    const [challenge, user] = await Promise.all([
+      prisma.challenge.findUnique({ where: { id: challengeId } }),
+      prisma.user.findUnique({ where: { id: userId }, include: { attempts: true } })
+    ])
+
+    if (!challenge || !user) return { error: 'Challenge or User not found' }
+
+    const oldRating = user.rating
+
+    // 2. Record the attempt with high-fidelity analytics
+    const newAttempt = await prisma.attempt.create({
       data: {
         userId,
         challengeId,
@@ -34,6 +45,22 @@ export async function submitAttempt(
         timeSeconds: stats.timeSeconds,
         rawLog: stats.rawLog as any
       }
+    })
+
+    // 3. Update Challenge Difficulty (Legacy placeholder)
+    updateChallengeDifficulty(challengeId).catch(console.error)
+
+    // 4. Calculate this attempt's Power Score (MVAR-15 Component)
+    const powerScore = await calculateSingleAttemptPower(challengeId, stats.wpm, stats.trueAccuracy)
+
+    // 5. Update User's Global Rating (The Titan Engine)
+    const newRating = await calculateUserRating(userId)
+    const ratingChange = newRating - oldRating
+
+    // Update Attempt with its power score contribution
+    await prisma.attempt.update({
+      where: { id: newAttempt.id },
+      data: { ratingChange: powerScore }
     })
 
     // Calculate Percentile for THIS challenge
@@ -48,8 +75,7 @@ export async function submitAttempt(
 
     const percentile = totalAttempts > 0 ? (betterThan / totalAttempts) * 100 : 100
 
-    // Update user aggregates (total Completed, average WPM, top WPM)
-    const user = await prisma.user.findUnique({ where: { id: userId }, include: { attempts: true } })
+    // 6. Update user aggregates including NEW Rating
     if (!user) return { error: 'User not found in database' }
 
     // Recalculate WPMs (We could also just query the Db)
@@ -58,7 +84,6 @@ export async function submitAttempt(
     const averageWpm = allWpms.reduce((a, b) => a + b, 0) / allWpms.length
     
     // Calculate Streaks if the challenge is Daily
-    const challenge = await prisma.challenge.findUnique({ where: { id: challengeId } })
     
     let newCurrentStreak = user.currentStreak
     let newLongestStreak = user.longestStreak
@@ -92,6 +117,7 @@ export async function submitAttempt(
         totalCompleted: new Set(user.attempts.map(a => a.challengeId)).size,
         averageWpm,
         topWpm,
+        rating: newRating,
         currentStreak: newCurrentStreak,
         longestStreak: newLongestStreak,
         lastDailyDate: newLastDailyDate,
@@ -104,7 +130,7 @@ export async function submitAttempt(
     revalidatePath(`/profile/${userId}`)
     revalidatePath('/challenges')
 
-    return { success: true, percentile }
+    return { success: true, percentile, ratingChange, newRating }
   } catch (error) {
     console.error('Submission Error:', error)
     return { error: 'Failed to save progress. Server error.' }
