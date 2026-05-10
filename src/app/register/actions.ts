@@ -68,7 +68,9 @@ export async function registerUser(formData: FormData) {
     })
 
     // 3. Send Verification Email using Nodemailer
-    const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify?token=${token}`
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const verifyUrl = `${baseUrl}/verify?token=${token}`
     
     // Check if SMTP is configured
     if (process.env.EMAIL_SERVER_HOST && process.env.EMAIL_SERVER_USER) {
@@ -129,7 +131,9 @@ export async function resendVerificationEmail(email: string) {
       }
     })
 
-    const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify?token=${token}`
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const verifyUrl = `${baseUrl}/verify?token=${token}`
     
     // Send email
     if (process.env.EMAIL_SERVER_HOST && process.env.EMAIL_SERVER_USER) {
