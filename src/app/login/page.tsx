@@ -6,21 +6,11 @@ import Link from 'next/link'
 import { registerUser, checkUserExists } from './actions'
 
 export default function CustomLoginPage() {
-  const [step, setStep] = useState(1)
-  
   // Login State
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-
-  // Profile Expansion State
-  const [firstName, setFirstName] = useState("")
-  const [lastName, setLastName] = useState("")
-  const [bio, setBio] = useState("")
-  const [website, setWebsite] = useState("")
-  const [linkedin, setLinkedin] = useState("")
-  const [github, setGithub] = useState("")
 
   const handleInitialSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,58 +22,19 @@ export default function CustomLoginPage() {
     setLoading(true)
     setError("")
     
-    // Explicitly check DB to differentiate an Invalid Password from an unregistered user!
-    const userExists = await checkUserExists(username)
-    
-    if (!userExists) {
-      // User is completely new safely locally bypass to Step 2
-      setStep(2)
-      setLoading(false)
-      return
-    }
-    
-    // They safely exist, proceed with native formal credential check
+    // Proceed with native formal credential check
     const res = await signIn("credentials", { username, password, redirect: false })
     
     if (res?.error) {
-      setError("Invalid Email or Password. Please double check and try again.")
+      if (res.error === "UserNotFound" || res.error === "CredentialsSignin") {
+        setError("Invalid Email/Username or Password. Please try again.")
+      } else {
+        setError(res.error) // Could be "Please verify your email" later!
+      }
       setLoading(false)
     } else {
       window.location.href = "/"
     }
-  }
-
-  const handleFormalRegistration = async () => {
-    if (!firstName || !lastName) {
-      setError("First Name and Last Name are mandatory.")
-      return
-    }
-
-    setLoading(true)
-    setError("")
-    
-    const formData = new FormData()
-    const authEmail = username.includes('@') ? username : `${username.toLowerCase().replace(/\s/g, '')}@typer.local`
-    formData.append("email", authEmail)
-    formData.append("password", password)
-    
-    formData.append("firstName", firstName)
-    formData.append("lastName", lastName)
-    formData.append("bio", bio)
-    formData.append("website", website)
-    formData.append("linkedin", linkedin)
-    formData.append("github", github)
-
-    const result = await registerUser(formData)
-    
-    if (result.error) {
-      setError(result.error)
-      setLoading(false)
-      return
-    }
-
-    // Server-action created DB profile! Instantly log them in silently natively.
-    await signIn("credentials", { username: authEmail, password, callbackUrl: "/" })
   }
 
   return (
@@ -97,7 +48,7 @@ export default function CustomLoginPage() {
             typer<span className="text-[var(--text-strong)]">.com</span>
           </Link>
           <p className="text-[var(--text-muted)] text-sm font-medium">
-            {step === 1 ? "Log in or quickly create your profile!" : "Complete your public profile details"}
+            Log in to your account
           </p>
         </div>
 
@@ -107,9 +58,7 @@ export default function CustomLoginPage() {
           </div>
         )}
 
-        {step === 1 ? (
-          <>
-            <form onSubmit={handleInitialSubmit} className="space-y-4 mb-8">
+          <form onSubmit={handleInitialSubmit} className="space-y-4 mb-8">
               <div>
                 <input 
                   type="text" 
@@ -167,75 +116,15 @@ export default function CustomLoginPage() {
                 </svg>
               </button>
             </div>
-          </>
-        ) : (
-          <div className="space-y-4 animate-in slide-in-from-right-10 duration-500">
-            <h3 className="font-bold text-[var(--text-strong)] mb-4 pb-2 border-b border-[var(--panel-border)] border-dashed text-lg shadow-sm">
-              Almost there, <span className="text-[var(--primary)]">{username}</span>!
-            </h3>
-            
-            <div className="flex gap-2">
-              <input 
-                type="text" 
-                placeholder="First Name *"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                disabled={loading}
-                className="w-1/2 bg-[var(--panel-border)]/30 border border-[var(--panel-border)] rounded-xl px-4 py-3 text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-medium placeholder-[var(--text-muted)] text-sm"
-              />
-              <input 
-                type="text" 
-                placeholder="Last Name *"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                disabled={loading}
-                className="w-1/2 bg-[var(--panel-border)]/30 border border-[var(--panel-border)] rounded-xl px-4 py-3 text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-medium placeholder-[var(--text-muted)] text-sm"
-              />
-            </div>
-            <input 
-              type="text" 
-              placeholder="Short Bio (Optional)"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              disabled={loading}
-              className="w-full bg-[var(--panel-border)]/30 border border-[var(--panel-border)] rounded-xl px-5 py-3 text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-medium placeholder-[var(--text-muted)] text-sm"
-            />
-            <input 
-              type="text" 
-              placeholder="Personal Website (Optional)"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              disabled={loading}
-              className="w-full bg-[var(--panel-border)]/30 border border-[var(--panel-border)] rounded-xl px-5 py-3 text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-medium placeholder-[var(--text-muted)] text-sm"
-            />
-            <input 
-              type="text" 
-              placeholder="LinkedIn Profile (Optional)"
-              value={linkedin}
-              onChange={(e) => setLinkedin(e.target.value)}
-              disabled={loading}
-              className="w-full bg-[var(--panel-border)]/30 border border-[var(--panel-border)] rounded-xl px-5 py-3 text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-medium placeholder-[var(--text-muted)] text-sm"
-            />
-            <input 
-              type="text" 
-              placeholder="GitHub Profile (Optional)"
-              value={github}
-              onChange={(e) => setGithub(e.target.value)}
-              disabled={loading}
-              className="w-full bg-[var(--panel-border)]/30 border border-[var(--panel-border)] rounded-xl px-5 py-3 text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-medium placeholder-[var(--text-muted)] text-sm"
-            />
 
-            <div className="pt-4">
-              <button 
-                onClick={() => handleFormalRegistration()}
-                disabled={loading}
-                className="w-full bg-[var(--primary)] hover:bg-blue-600 active:scale-95 text-white font-bold py-3.5 rounded-xl shadow-[0_4px_15px_rgba(59,130,246,0.3)] transition-all flex items-center justify-center disabled:opacity-50"
-              >
-                {loading ? "Creating Profile..." : "Complete Profile & Start Typing"}
-              </button>
+            <div className="mt-8 text-center">
+              <p className="text-[var(--text-muted)] text-sm font-medium">
+                Don&apos;t have an account?{" "}
+                <Link href="/register" className="text-[var(--primary)] hover:underline font-bold">
+                  Sign up here
+                </Link>
+              </p>
             </div>
-          </div>
-        )}
       </div>
     </div>
   )

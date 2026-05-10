@@ -156,6 +156,17 @@ export default function EditProfileModal({ user }: { user: any }) {
               </div>
 
               <div className="space-y-2">
+                <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Email</label>
+                <input
+                  type="email"
+                  value={user.email || ""}
+                  disabled
+                  className="w-full bg-[var(--panel-border)]/10 border border-[var(--panel-border)] rounded-xl px-4 py-3 text-[var(--text-muted)] cursor-not-allowed opacity-70 text-sm"
+                  title="Your email address cannot be changed."
+                />
+              </div>
+
+              <div className="space-y-2">
                 <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Bio</label>
                 <textarea
                   name="bio"

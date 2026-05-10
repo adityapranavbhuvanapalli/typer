@@ -30,16 +30,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       const username = `${baseName}_${randomHash}`
 
       const user = await prisma.user.create({
-        data: { ...data, firstName, lastName, username }
+        data: { 
+          ...data, 
+          firstName, 
+          lastName, 
+          username,
+          emailVerified: new Date(), // Trusted SSO
+          lastActive: new Date() 
+        }
       })
       return user as any
     }
   },
   providers: [
-    Google,
-    GitHub,
-    Apple,
-    Facebook,
+    Google({ allowDangerousEmailAccountLinking: true }),
+    GitHub({ allowDangerousEmailAccountLinking: true }),
+    Apple({ allowDangerousEmailAccountLinking: true }),
+    Facebook({ allowDangerousEmailAccountLinking: true }),
     // Robust Password Local Login with On-The-Fly Generation
     Credentials({
       name: "Start Typing...", // NextAuth prepends "Sign in with " to this by default
@@ -66,8 +73,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         })
         
         if (!user) {
-          // Explicitly throw so the frontend login panel can intercept and open the Registration Step
-          throw new Error("UserNotFound")
+          return null
         }
         
         // Verify Existing Local User
@@ -93,13 +99,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.username = (user as any).username
         token.currentStreak = (user as any).currentStreak
         token.lastDailyDate = (user as any).lastDailyDate
+        token.emailVerified = (user as any).emailVerified
       }
       if (trigger === "update" && session) {
          if (session.firstName !== undefined) token.firstName = session.firstName
          if (session.lastName !== undefined) token.lastName = session.lastName
          if (session.username !== undefined) token.username = session.username
       }
-      // Optional: Add trigger="update" handling for streak later if needed
       return token
     },
     session({ session, token }) {
@@ -110,8 +116,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.username = token.username as string | null | undefined
         session.user.currentStreak = token.currentStreak as number | undefined
         session.user.lastDailyDate = token.lastDailyDate as Date | null | undefined
+        session.user.emailVerified = token.emailVerified as Date | null | undefined
       }
       return session
+    }
+  },
+  events: {
+    async signIn({ user }) {
+      if (user?.id) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { lastActive: new Date() }
+        }).catch(err => console.error("Failed to update lastActive:", err));
+      }
     }
   }
 })
