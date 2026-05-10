@@ -1,6 +1,14 @@
 {
   "crons": [
     {
+      "path": "/api/cron/daily",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/weekend",
+      "schedule": "0 0 * * 0"
+    },
+    {
       "path": "/api/cron/scrub-stale-users",
       "schedule": "0 2 * * *"
     }
