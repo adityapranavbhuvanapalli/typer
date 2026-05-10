@@ -53,14 +53,20 @@ export async function submitAttempt(
     // 4. Calculate this attempt's Power Score (MVAR-15 Component)
     const powerScore = await calculateSingleAttemptPower(challengeId, stats.wpm, stats.trueAccuracy)
 
-    // 5. Update User's Global Rating (The Titan Engine)
-    const newRating = await calculateUserRating(userId)
-    const ratingChange = newRating - oldRating
-
-    // Update Attempt with its power score contribution
+    // 5. Save the power score contribution IMMEDIATELY
+    // This allows calculateUserRating to use the cached value
     await prisma.attempt.update({
       where: { id: newAttempt.id },
       data: { ratingChange: powerScore }
+    })
+
+    // 6. Update User's Global Rating (The Titan Engine) using cached scores
+    const newRating = await calculateUserRating(userId)
+    const ratingChange = newRating - oldRating
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { rating: newRating }
     })
 
     // Calculate Percentile for THIS challenge
