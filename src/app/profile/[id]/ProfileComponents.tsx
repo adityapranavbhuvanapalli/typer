@@ -59,7 +59,7 @@ export function ProfileSidebar({ user, serializedUser, isOwnProfile, topRank }: 
           <p className="text-[var(--text-muted)] font-medium text-lg">@{displayUsername}</p>
           <div className="mt-2 inline-flex items-center gap-2 px-4 py-1.5 bg-[var(--panel-border)]/50 rounded-full border border-[var(--panel-border)]">
             <Trophy className="w-4 h-4 text-yellow-500" />
-            <span className="text-sm font-bold text-[var(--text-strong)] tracking-tight">Top Speed Rank: <span className="text-[var(--primary)] ml-1">#{topRank.toLocaleString()}</span></span>
+            <span className="text-sm font-bold text-[var(--text-strong)] tracking-tight">Global Rating Rank: <span className="text-[var(--primary)] ml-1">#{topRank.toLocaleString()}</span></span>
           </div>
         </div>
       </div>
@@ -152,15 +152,17 @@ export function StatsDashboard({
         <div className="bg-[var(--panel-bg)] border border-[var(--panel-border)] p-6 rounded-3xl shadow-xl flex flex-col justify-between group hover:border-[var(--primary)]/30 transition-all">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">Rating</h3>
+              <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">Global Rating</h3>
               <div className="p-2 bg-yellow-500/10 rounded-lg">
                 <Trophy className="w-4 h-4 text-yellow-500" />
               </div>
             </div>
-            <p className="text-2xl font-black text-[var(--text-strong)] tracking-tighter">Coming Soon</p>
+            <p className="text-4xl font-mono font-black text-[var(--text-strong)] tracking-tighter">
+              {Math.round(user.rating)} <span className="text-xs font-normal text-[var(--text-muted)]">TR</span>
+            </p>
           </div>
           <div className="mt-6 flex items-center justify-between text-xs font-bold">
-            <span className="text-[var(--text-muted)] uppercase">Avg. WPM Ranking</span>
+            <span className="text-[var(--text-muted)] uppercase">Overall Rank</span>
             <span className="text-[var(--text-strong)] font-mono">#{avgRank.toLocaleString()}</span>
           </div>
         </div>

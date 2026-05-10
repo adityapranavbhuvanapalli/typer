@@ -1,6 +1,6 @@
 import prisma from '@/lib/db'
 import LeaderboardTable from './LeaderboardTable'
-import { getCachedTopWpmUsers, getCachedMostCompletedUsers, getCachedLongestStreakUsers } from '@/lib/cache'
+import { getCachedTopWpmUsers, getCachedMostCompletedUsers, getCachedLongestStreakUsers, getCachedRatingUsers } from '@/lib/cache'
 
 // Next.js config to revalidate periodically or keep dynamic
 export const revalidate = 60 // regenerate page every 60 seconds
@@ -11,9 +11,9 @@ export default async function LeaderboardsPage(props: { searchParams: Promise<{ 
   const pageSize = 25
   const skip = (page - 1) * pageSize
 
-  const [topWpm, avgWpm, mostCompleted, longestStreak, totalCount] = await Promise.all([
+  const [topRating, topWpm, mostCompleted, longestStreak, totalCount] = await Promise.all([
+    getCachedRatingUsers(pageSize, skip),
     getCachedTopWpmUsers(pageSize, skip),
-    prisma.user.findMany({ orderBy: { averageWpm: 'desc' }, take: pageSize, skip }),
     getCachedMostCompletedUsers(pageSize, skip),
     getCachedLongestStreakUsers(pageSize, skip),
     prisma.user.count({ where: { totalCompleted: { gt: 0 } } })
@@ -29,6 +29,7 @@ export default async function LeaderboardsPage(props: { searchParams: Promise<{ 
     image: u.image,
     topWpm: u.topWpm,
     averageWpm: u.averageWpm,
+    rating: u.rating,
     totalCompleted: u.totalCompleted,
     currentStreak: u.currentStreak,
     longestStreak: u.longestStreak,
@@ -43,8 +44,8 @@ export default async function LeaderboardsPage(props: { searchParams: Promise<{ 
 
       {/* Main Tabbed Leaderboard Component */}
       <LeaderboardTable 
+        topRatingUsers={serialize(topRating)}
         topWpmUsers={serialize(topWpm)}
-        avgWpmUsers={serialize(avgWpm)} 
         mostCompletedUsers={serialize(mostCompleted)} 
         longestStreakUsers={serialize(longestStreak)} 
         page={page}

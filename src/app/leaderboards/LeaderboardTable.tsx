@@ -11,14 +11,15 @@ export interface LeaderboardUser {
   image: string | null
   topWpm: number
   averageWpm: number
+  rating: number
   totalCompleted: number
   currentStreak: number
   longestStreak: number
 }
 
 interface LeaderboardTableProps {
+  topRatingUsers: LeaderboardUser[]
   topWpmUsers: LeaderboardUser[]
-  avgWpmUsers: LeaderboardUser[]
   mostCompletedUsers: LeaderboardUser[]
   longestStreakUsers: LeaderboardUser[]
   page: number
@@ -26,18 +27,18 @@ interface LeaderboardTableProps {
   pageSize: number
 }
 
-type TabType = 'top_speed' | 'avg_speed' | 'solved' | 'streak'
+type TabType = 'top_rating' | 'top_speed' | 'solved' | 'streak'
 
-export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostCompletedUsers, longestStreakUsers, page, totalPages, pageSize }: LeaderboardTableProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('top_speed')
+export default function LeaderboardTable({ topRatingUsers, topWpmUsers, mostCompletedUsers, longestStreakUsers, page, totalPages, pageSize }: LeaderboardTableProps) {
+  const [activeTab, setActiveTab] = useState<TabType>('top_rating')
   
   const getActiveData = () => {
     switch(activeTab) {
+      case 'top_rating': return topRatingUsers
       case 'top_speed': return topWpmUsers
-      case 'avg_speed': return avgWpmUsers
       case 'solved': return mostCompletedUsers
       case 'streak': return longestStreakUsers
-      default: return topWpmUsers
+      default: return topRatingUsers
     }
   }
 
@@ -49,16 +50,16 @@ export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostComplet
       {/* Tab Header */}
       <div className="flex border-b border-[var(--panel-border)] bg-[var(--panel-bg)]/50 pt-2 px-4 gap-2 overflow-x-auto">
         <button
+          onClick={() => setActiveTab('top_rating')}
+          className={`whitespace-nowrap px-6 py-3 flex items-center gap-2 font-medium text-sm transition-all border-b-2 rounded-tl-lg rounded-tr-lg ${activeTab === 'top_rating' ? 'border-purple-500 text-[var(--metric-avg)] bg-purple-500/10' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-strong)] hover:bg-[var(--panel-border)]'}`}
+        >
+          <Trophy size={16} /> Global Rating
+        </button>
+        <button
           onClick={() => setActiveTab('top_speed')}
           className={`whitespace-nowrap px-6 py-3 flex items-center gap-2 font-medium text-sm transition-all border-b-2 rounded-tl-lg rounded-tr-lg ${activeTab === 'top_speed' ? 'border-blue-500 text-[var(--metric-speed)] bg-blue-500/10' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-strong)] hover:bg-[var(--panel-border)]'}`}
         >
           <Zap size={16} /> Top Speed
-        </button>
-        <button
-          onClick={() => setActiveTab('avg_speed')}
-          className={`whitespace-nowrap px-6 py-3 flex items-center gap-2 font-medium text-sm transition-all border-b-2 rounded-tl-lg rounded-tr-lg ${activeTab === 'avg_speed' ? 'border-purple-500 text-[var(--metric-avg)] bg-purple-500/10' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-strong)] hover:bg-[var(--panel-border)]'}`}
-        >
-          <Activity size={16} /> Avg Speed
         </button>
         <button
           onClick={() => setActiveTab('solved')}
@@ -81,11 +82,11 @@ export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostComplet
             <tr className="border-b border-[var(--panel-border)] text-[var(--text-muted)] text-xs uppercase tracking-wider bg-black/20">
               <th className="p-4 font-medium w-24">Rank</th>
               <th className="p-4 font-medium w-full">User</th>
+              {activeTab === 'top_rating' && (
+                <th className="p-4 font-medium text-right w-48 whitespace-nowrap">Typer Rating</th>
+              )}
               {activeTab === 'top_speed' && (
                 <th className="p-4 font-medium text-right w-48 whitespace-nowrap">Top Speed</th>
-              )}
-              {activeTab === 'avg_speed' && (
-                <th className="p-4 font-medium text-right w-48 whitespace-nowrap">Avg Speed</th>
               )}
               {activeTab === 'solved' && (
                 <th className="p-4 font-medium text-right w-48 whitespace-nowrap">Total Solved</th>
@@ -127,14 +128,14 @@ export default function LeaderboardTable({ topWpmUsers, avgWpmUsers, mostComplet
                     <span className="font-semibold text-[var(--text-strong)] hover:underline decoration-blue-500 underline-offset-4">{user.username || 'Anonymous'}</span>
                   </Link>
                 </td>
+                {activeTab === 'top_rating' && (
+                  <td className="p-4 font-mono font-bold text-purple-500 text-right whitespace-nowrap">
+                    {Math.round(user.rating)} <span className="text-xs font-normal text-[var(--text-muted)]">TR</span>
+                  </td>
+                )}
                 {activeTab === 'top_speed' && (
                   <td className="p-4 font-mono font-bold text-[var(--metric-speed)] text-right whitespace-nowrap">
                     {Math.round(user.topWpm)} WPM
-                  </td>
-                )}
-                {activeTab === 'avg_speed' && (
-                  <td className="p-4 font-mono font-bold text-[var(--metric-avg)] text-right whitespace-nowrap">
-                    {Math.round(user.averageWpm)} WPM
                   </td>
                 )}
                 {activeTab === 'solved' && (

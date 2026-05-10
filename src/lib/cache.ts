@@ -15,7 +15,7 @@ export const getCachedTopUsers = unstable_cache(
   async (limit = 5) => {
     return await prisma.user.findMany({
       where: { totalCompleted: { gt: 0 } },
-      orderBy: { topWpm: 'desc' },
+      orderBy: { rating: 'desc' },
       take: limit
     })
   },
@@ -63,6 +63,21 @@ export const getCachedLongestStreakUsers = async (limit = 25, skip = 0) => {
       })
     },
     ['longest-streak-users', String(limit), String(skip)],
+    { revalidate: 60 }
+  )
+  return getCached()
+}
+
+export const getCachedRatingUsers = async (limit = 25, skip = 0) => {
+  const getCached = unstable_cache(
+    async () => {
+      return await prisma.user.findMany({
+        orderBy: { rating: 'desc' },
+        take: limit,
+        skip
+      })
+    },
+    ['top-rating-users', String(limit), String(skip)],
     { revalidate: 60 }
   )
   return getCached()

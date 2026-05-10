@@ -34,15 +34,13 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
   oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
 
   const [
-    topWpmSlower, 
-    avgWpmSlower, 
+    ratingSlower, 
     totalUsers,
     activityDataRaw,
     progressionDataRaw,
     recentAttemptsRaw
   ] = await Promise.all([
-    prisma.user.count({ where: { totalCompleted: { gt: 0 }, topWpm: { lt: user.topWpm } } }),
-    prisma.user.count({ where: { totalCompleted: { gt: 0 }, averageWpm: { lt: user.averageWpm } } }),
+    prisma.user.count({ where: { totalCompleted: { gt: 0 }, rating: { lt: user.rating } } }),
     prisma.user.count({ where: { totalCompleted: { gt: 0 } } }),
     // 1. Activity Data (Past Year ONLY - Lightweight)
     prisma.attempt.findMany({
@@ -65,9 +63,8 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
     })
   ])
 
-  const topWpmRank = totalUsers - topWpmSlower
-  const avgWpmRank = totalUsers - avgWpmSlower
-  const percentile = totalUsers === 0 ? 0 : ((totalUsers - topWpmRank + 1) / totalUsers) * 100
+  const ratingRank = totalUsers - ratingSlower
+  const percentile = totalUsers === 0 ? 0 : ((totalUsers - ratingRank + 1) / totalUsers) * 100
 
   // Serialize datasets with percentile enrichment
   const activityData = activityDataRaw.map(a => ({ completedAt: a.completedAt.toISOString() }))
@@ -147,7 +144,7 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
               user={user} 
               serializedUser={serializedUser} 
               isOwnProfile={isOwnProfile} 
-              topRank={topWpmRank} 
+              topRank={ratingRank} 
             />
           </div>
 
@@ -157,7 +154,7 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
               user={user} 
               percentile={percentile} 
               totalUsers={totalUsers}
-              avgRank={avgWpmRank}
+              avgRank={ratingRank}
               solvedByDifficulty={solvedByDifficulty}
               totalByDifficulty={totalByDifficulty}
             />
