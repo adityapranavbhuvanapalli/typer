@@ -1,5 +1,6 @@
 import prisma from '@/lib/db'
 import { notFound, redirect } from 'next/navigation'
+import Link from 'next/link'
 import UserGraphs from './UserGraphs'
 import { auth } from '@/auth'
 import { ProfileSidebar, StatsDashboard } from './ProfileComponents'
@@ -212,6 +213,18 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
               ) : (
                 <div className="bg-[var(--panel-bg)] border border-[var(--panel-border)] border-dashed p-12 rounded-3xl text-center">
                   <p className="text-[var(--text-muted)] font-medium">No challenges completed yet. Start typing to see your history!</p>
+                </div>
+              )}
+
+              {recentAttempts.length > 0 && (
+                <div className="pt-4 flex justify-center">
+                  <Link 
+                    href={`/profile/${user.username || user.id}/history`}
+                    className="px-8 py-3 bg-[var(--panel-border)]/50 hover:bg-[var(--panel-border)] text-[var(--text-strong)] font-black rounded-2xl border border-[var(--panel-border)] transition-all flex items-center gap-2 group"
+                  >
+                    View All History
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  </Link>
                 </div>
               )}
             </div>
