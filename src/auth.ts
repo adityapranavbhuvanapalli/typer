@@ -116,7 +116,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.username = token.username as string | null | undefined
         session.user.currentStreak = token.currentStreak as number | undefined
         session.user.lastDailyDate = token.lastDailyDate as Date | null | undefined
-        session.user.emailVerified = token.emailVerified as Date | null | undefined
+        session.user.emailVerified = (token.emailVerified as Date | null) || null
       }
       return session
     }
