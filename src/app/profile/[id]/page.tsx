@@ -19,7 +19,7 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
       include: { 
         attempts: {
           orderBy: { completedAt: 'desc' },
-          take: 5,
+          take: 1000,
           include: { challenge: true }
         } 
       }
@@ -129,7 +129,7 @@ export default async function ProfilePage(props: { params: Promise<{ id: string 
               </h2>
               {serializedAttempts.length > 0 ? (
                 <div className="space-y-3">
-                  {serializedAttempts.map((attempt: any) => (
+                  {serializedAttempts.slice(0, 10).map((attempt: any) => (
                     <div key={attempt.id} className="bg-[var(--panel-bg)] border border-[var(--panel-border)] p-4 px-6 rounded-2xl flex items-center justify-between hover:border-[var(--primary)]/30 transition-all group cursor-default">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-1">
