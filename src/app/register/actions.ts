@@ -68,8 +68,9 @@ export async function registerUser(formData: FormData) {
     })
 
     // 3. Send Verification Email using Nodemailer
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const baseUrl = process.env.SITE_URL || 
+                    process.env.NEXT_PUBLIC_APP_URL || 
+                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://socialtyper.vercel.app')
     const verifyUrl = `${baseUrl}/verify?token=${token}`
     
     // Check if SMTP is configured
@@ -131,8 +132,9 @@ export async function resendVerificationEmail(email: string) {
       }
     })
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const baseUrl = process.env.SITE_URL || 
+                    process.env.NEXT_PUBLIC_APP_URL || 
+                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://socialtyper.vercel.app')
     const verifyUrl = `${baseUrl}/verify?token=${token}`
     
     // Send email
