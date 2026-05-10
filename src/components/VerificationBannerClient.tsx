@@ -1,11 +1,13 @@
 "use client"
 
 import { useState } from "react"
+import { useSession } from "next-auth/react"
 import { resendVerificationEmail } from "@/app/register/actions"
 
 export default function BannerClient({ email }: { email: string }) {
   const [hidden, setHidden] = useState(false)
   const [loading, setLoading] = useState(false)
+  const { update } = useSession()
 
   const handleResend = async () => {
     setLoading(true)
@@ -19,10 +21,17 @@ export default function BannerClient({ email }: { email: string }) {
     }
   }
 
+  const handleRefresh = async () => {
+    setLoading(true)
+    // NextAuth update() fetches the latest session from the server
+    await update()
+    setLoading(false)
+  }
+
   if (hidden) return null
 
   return (
-    <div className="w-full bg-orange-500/10 border-b border-orange-500/20 px-4 py-3 flex items-center justify-between text-sm shadow-sm relative z-50">
+    <div className="w-full bg-orange-500/10 border-b border-orange-500/20 px-4 py-3 flex items-center justify-between text-sm shadow-sm relative z-50 animate-in slide-in-from-top duration-500">
       <div className="flex items-center gap-3">
         <div className="bg-orange-500/20 p-1.5 rounded-full text-orange-400">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
@@ -34,13 +43,22 @@ export default function BannerClient({ email }: { email: string }) {
         </p>
       </div>
       <div className="flex items-center gap-4">
-        <button 
-          onClick={handleResend}
-          disabled={loading}
-          className="text-orange-400 hover:text-orange-300 font-bold hover:underline disabled:opacity-50"
-        >
-          {loading ? "Sending..." : "Resend Email"}
-        </button>
+        <div className="flex items-center gap-4 pr-4 border-r border-orange-500/20">
+          <button 
+            onClick={handleResend}
+            disabled={loading}
+            className="text-orange-400 hover:text-orange-300 font-bold hover:underline disabled:opacity-50 transition-all"
+          >
+            {loading ? "..." : "Resend Email"}
+          </button>
+          <button 
+            onClick={handleRefresh}
+            disabled={loading}
+            className="px-3 py-1 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg font-bold transition-all border border-orange-500/30"
+          >
+            {loading ? "Checking..." : "I've Verified"}
+          </button>
+        </div>
         <button 
           onClick={() => setHidden(true)}
           className="text-[var(--text-muted)] hover:text-[var(--text-strong)] transition-colors p-1"

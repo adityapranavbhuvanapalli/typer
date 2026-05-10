@@ -8,7 +8,8 @@ import {
   Globe,
   Trophy,
   Star,
-  Calendar
+  Calendar,
+  CheckCircle2
 } from 'lucide-react'
 import EditProfileModal from './EditProfileModal'
 
@@ -24,6 +25,10 @@ export function ProfileSidebar({ user, serializedUser, isOwnProfile, topRank }: 
     ? session.user.username 
     : user.username
 
+  const isVerified = isOwnProfile && session?.user 
+    ? !!session.user.emailVerified 
+    : !!user.emailVerified
+
   return (
     <div className="space-y-8">
       {/* Identity Card */}
@@ -37,8 +42,13 @@ export function ProfileSidebar({ user, serializedUser, isOwnProfile, topRank }: 
         </div>
         <div className="text-center md:text-left w-full space-y-2">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-3">
-            <h1 className="text-3xl font-black text-[var(--text-strong)] tracking-tight">
+            <h1 className="text-3xl font-black text-[var(--text-strong)] tracking-tight flex items-center gap-2">
               {displayName}
+              {isVerified && (
+                <span title="Verified Account">
+                  <CheckCircle2 className="w-6 h-6 text-blue-500 fill-blue-500/10" />
+                </span>
+              )}
             </h1>
             {isOwnProfile && (
               <div className="flex-shrink-0">
