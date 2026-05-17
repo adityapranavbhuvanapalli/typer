@@ -10,6 +10,8 @@ export default function ChallengeWorkspace({ challenge, isGuest }: { challenge: 
   const router = useRouter()
   const [isCompleted, setIsCompleted] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isFailedAttempt, setIsFailedAttempt] = useState(false)
+  const [failMessage, setFailMessage] = useState("")
   const [stats, setStats] = useState<{ 
     wpm: number, 
     timeSeconds: number, 
@@ -25,13 +27,26 @@ export default function ChallengeWorkspace({ challenge, isGuest }: { challenge: 
     setStats(finalStats)
     setIsCompleted(true)
 
+    // Client-side quick accuracy validation
+    const MIN_ACCURACY = 90.0
+    if (finalStats.trueAccuracy < MIN_ACCURACY) {
+      setIsFailedAttempt(true)
+      setFailMessage(`Accuracy too low (${finalStats.trueAccuracy.toFixed(1)}%). Minimum required is ${MIN_ACCURACY}%.`)
+      return
+    }
+
     if (!isGuest) {
       setIsSaving(true)
       const res = await submitAttempt(challenge.id, finalStats)
       setIsSaving(false)
       
       if (res.error) {
-        alert("CRITICAL ERROR: " + res.error)
+        if (res.reason === "ACCURACY_TOO_LOW") {
+          setIsFailedAttempt(true)
+          setFailMessage(res.error)
+        } else {
+          alert("CRITICAL ERROR: " + res.error)
+        }
       } else {
         setStats(prev => prev ? { 
           ...prev, 
@@ -77,41 +92,60 @@ export default function ChallengeWorkspace({ challenge, isGuest }: { challenge: 
       {!isCompleted ? (
         <TypingEngine content={challenge.content} onComplete={handleComplete} />
       ) : (
-        <div className="w-full max-w-4xl bg-[var(--panel-bg)] border border-[var(--panel-border)] p-10 rounded-3xl shadow-2xl text-center space-y-10 animate-in fade-in zoom-in duration-500">
-          <div className="space-y-2">
-            <h2 className="text-5xl font-black text-[var(--text-strong)] tracking-tighter">Challenge Complete!</h2>
-            <p className="text-[var(--text-muted)] font-medium">Detailed performance breakdown</p>
+        <div className={`w-full max-w-4xl bg-[var(--panel-bg)] border p-10 rounded-3xl shadow-2xl text-center space-y-10 animate-in fade-in zoom-in duration-500 ${isFailedAttempt ? 'border-rose-500/20' : 'border-[var(--panel-border)]'}`}>
+          <div className="space-y-4">
+            <h2 className={`text-5xl font-black tracking-tighter ${isFailedAttempt ? 'text-rose-500' : 'text-[var(--text-strong)]'}`}>
+              {isFailedAttempt ? 'Attempt Unsuccessful' : 'Challenge Complete!'}
+            </h2>
+            <p className="text-[var(--text-muted)] font-medium">
+              {isFailedAttempt ? 'Accuracy threshold not met' : 'Detailed performance breakdown'}
+            </p>
+            {isFailedAttempt && (
+              <div className="mx-auto max-w-2xl p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-400 text-sm font-semibold flex items-center justify-center gap-2">
+                <span>⚠️</span>
+                <span>{failMessage} Leaderboard & rating changes are locked for runs below 90% accuracy.</span>
+              </div>
+            )}
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="p-4 bg-[var(--panel-bg)] rounded-2xl border border-[var(--panel-border)] shadow-sm hover:border-[var(--primary)]/30 transition-all">
+            <div className={`p-4 bg-[var(--panel-bg)] rounded-2xl border shadow-sm transition-all ${isFailedAttempt ? 'border-rose-500/10' : 'border-[var(--panel-border)] hover:border-[var(--primary)]/30'}`}>
               <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mb-2">Net Speed</p>
-              <p className="text-3xl font-black text-[var(--metric-speed)] font-mono">{Math.round(stats!.wpm)} <span className="text-xs font-normal">WPM</span></p>
+              <p className={`text-3xl font-black font-mono ${isFailedAttempt ? 'text-rose-300' : 'text-[var(--metric-speed)]'}`}>{Math.round(stats!.wpm)} <span className="text-xs font-normal">WPM</span></p>
             </div>
-            <div className="p-4 bg-[var(--panel-bg)] rounded-2xl border border-[var(--panel-border)] shadow-sm hover:border-[var(--primary)]/30 transition-all">
+            <div className={`p-4 bg-[var(--panel-bg)] rounded-2xl border shadow-sm transition-all ${isFailedAttempt ? 'border-rose-500/30 bg-rose-500/5' : 'border-[var(--panel-border)] hover:border-[var(--primary)]/30'}`}>
               <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mb-2">True Accuracy</p>
-              <p className="text-3xl font-black text-[var(--primary)] font-mono">{stats!.trueAccuracy.toFixed(1)}%</p>
+              <p className={`text-3xl font-black font-mono ${isFailedAttempt ? 'text-rose-500 font-bold animate-pulse' : 'text-[var(--primary)]'}`}>{stats!.trueAccuracy.toFixed(1)}%</p>
             </div>
-            <div className="p-4 bg-[var(--panel-bg)] rounded-2xl border border-[var(--panel-border)] shadow-sm hover:border-[var(--primary)]/30 transition-all">
+            <div className={`p-4 bg-[var(--panel-bg)] rounded-2xl border shadow-sm transition-all ${isFailedAttempt ? 'border-rose-500/10' : 'border-[var(--panel-border)] hover:border-[var(--primary)]/30'}`}>
               <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mb-2">Time</p>
               <p className="text-3xl font-black text-[var(--text-strong)] font-mono">{stats!.timeSeconds.toFixed(1)}s</p>
             </div>
-            <div className="p-4 bg-[var(--panel-bg)] rounded-2xl border border-[var(--panel-border)] shadow-sm hover:border-[var(--primary)]/30 transition-all">
+            <div className={`p-4 bg-[var(--panel-bg)] rounded-2xl border shadow-sm transition-all ${isFailedAttempt ? 'border-rose-500/10 opacity-40' : 'border-[var(--panel-border)] hover:border-[var(--primary)]/30'}`}>
               <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mb-2">Percentile</p>
               <p className="text-3xl font-black text-[var(--text-strong)] font-mono">
-                {stats!.percentile !== undefined ? stats!.percentile.toFixed(1) : '...'}
+                {isFailedAttempt ? '—' : (stats!.percentile !== undefined ? stats!.percentile.toFixed(1) : '...')}
               </p>
             </div>
-            <div className="p-4 bg-[var(--panel-bg)] rounded-2xl border border-[var(--primary)]/20 shadow-lg hover:border-[var(--primary)] transition-all flex flex-col justify-center">
+            <div className={`p-4 bg-[var(--panel-bg)] rounded-2xl border shadow-lg transition-all flex flex-col justify-center ${isFailedAttempt ? 'border-rose-500/20 opacity-50' : 'border-[var(--primary)]/20 hover:border-[var(--primary)]'}`}>
               <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mb-1">Rating</p>
               <div className="flex items-baseline gap-2 justify-center">
-                <p className="text-3xl font-black text-[var(--primary)] font-mono">
-                  {stats!.newRating !== undefined ? Math.round(stats!.newRating) : '...'}
-                </p>
-                {stats!.ratingChange !== undefined && (
-                  <span className={`text-xs font-bold ${stats!.ratingChange >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                    {stats!.ratingChange >= 0 ? '+' : ''}{stats!.ratingChange.toFixed(1)}
-                  </span>
+                {isFailedAttempt ? (
+                  <div className="flex items-center gap-1.5 justify-center text-[var(--text-muted)] py-1">
+                    <span className="text-sm">🔒</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">Locked</span>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-3xl font-black text-[var(--primary)] font-mono">
+                      {stats!.newRating !== undefined ? Math.round(stats!.newRating) : '...'}
+                    </p>
+                    {stats!.ratingChange !== undefined && (
+                      <span className={`text-xs font-bold ${stats!.ratingChange >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {stats!.ratingChange >= 0 ? '+' : ''}{stats!.ratingChange.toFixed(1)}
+                      </span>
+                    )}
+                  </>
                 )}
               </div>
             </div>
