@@ -85,7 +85,7 @@ export async function registerUser(formData: FormData) {
       })
 
       await transporter.sendMail({
-        from: process.env.EMAIL_FROM || '"Typer" <noreply@typer.com>',
+        from: process.env.EMAIL_FROM || '"Typer" <noreply@typerleague.com>',
         to: email,
         subject: "Verify your Typer Account",
         text: `Welcome to Typer! Please verify your account by clicking the following link: ${verifyUrl}`,
@@ -149,7 +149,7 @@ export async function resendVerificationEmail(email: string) {
       })
 
       await transporter.sendMail({
-        from: process.env.EMAIL_FROM || '"Typer" <noreply@typer.com>',
+        from: process.env.EMAIL_FROM || '"Typer" <noreply@typerleague.com>',
         to: email,
         subject: "Verify your Typer Account",
         text: `Please verify your account by clicking the following link: ${verifyUrl}`,

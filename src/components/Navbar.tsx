@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { auth, signOut } from '@/auth'
-import { ThemeToggle } from './ThemeToggle'
 import { NavLinks } from './NavLinks'
 import { getEffectiveStreak } from '@/lib/streak'
 
@@ -45,7 +44,7 @@ export async function Navbar() {
   return (
     <nav className="flex justify-between items-center px-8 py-4 border-b border-[var(--panel-border)] shadow-md bg-[var(--panel-bg)]/80 backdrop-blur-md sticky top-0 z-50 transition-all">
       <Link href="/" className="text-3xl font-black tracking-tighter text-[var(--primary)] hover:text-[var(--text-strong)] transition-colors duration-200">
-        typer
+        typerleague
         <span className="text-[var(--text-strong)] text-3xl">.com</span>
       </Link>
       
@@ -90,10 +89,7 @@ export async function Navbar() {
           </Link>
         )}
 
-        {/* Theme Toggle placed explicitly next to sign in block */}
-        <div className="pl-4 border-l border-[var(--panel-border)]/50">
-          <ThemeToggle />
-        </div>
+
       </div>
     </nav>
   )

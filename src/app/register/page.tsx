@@ -50,7 +50,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md bg-[var(--panel-bg)]/80 backdrop-blur-2xl border border-[var(--panel-border)] p-10 rounded-3xl shadow-2xl animate-in fade-in zoom-in duration-500">
         <div className="text-center space-y-2 mb-10">
           <Link href="/" className="inline-block text-4xl font-black tracking-tighter text-[var(--primary)] mb-2">
-            typer<span className="text-[var(--text-strong)]">.com</span>
+            typerleague<span className="text-[var(--text-strong)]">.com</span>
           </Link>
           <p className="text-[var(--text-muted)] text-sm font-medium">
             {success ? "Check your inbox!" : "Create your account"}
