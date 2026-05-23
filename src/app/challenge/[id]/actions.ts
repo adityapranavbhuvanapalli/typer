@@ -24,6 +24,18 @@ export async function submitAttempt(
 
     const userId = session.user.id
 
+    // Accuracy Guard: Minimum 90% required to register a successful attempt
+    const MIN_ACCURACY = 90.0
+    if (stats.trueAccuracy < MIN_ACCURACY) {
+      return { 
+        success: false, 
+        error: `Accuracy too low (${stats.trueAccuracy.toFixed(1)}%). Minimum required is ${MIN_ACCURACY}%.`, 
+        reason: 'ACCURACY_TOO_LOW',
+        accuracy: stats.trueAccuracy,
+        minRequired: MIN_ACCURACY
+      }
+    }
+
     // 1. Fetch current challenge and user stats
     const [challenge, user] = await Promise.all([
       prisma.challenge.findUnique({ where: { id: challengeId } }),
